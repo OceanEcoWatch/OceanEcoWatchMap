@@ -1,0 +1,40 @@
+.mapboxgl-ctrl-group {
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 4px; 
+    color: white
+}
+
+.mapboxgl-ctrl-zoom-in, .mapboxgl-ctrl-zoom-out {
+    background-image: none !important;
+    color: white; 
+    font-size: 28px;
+}
+
+.mapboxgl-ctrl-zoom-in::before, .mapboxgl-ctrl-zoom-out::before {
+    content: '+'; 
+}
+
+.mapboxgl-ctrl-zoom-out::before {
+    content: '-'; 
+}
+
+.mapboxgl-ctrl-attrib-inner{
+    padding: 5px;
+    a{
+        color: white;
+    }
+}
+
+.mapboxgl-ctrl-attrib{
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border-top-left-radius: 10px;
+}
+
+
+
+.mapboxgl-popup-content {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border-radius: 8px;
+    color: white;
+    padding: 15px;
+}
