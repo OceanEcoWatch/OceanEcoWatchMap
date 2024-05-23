@@ -69,7 +69,7 @@ export async function fetchRegionDatetimes(regionId: number): Promise<RegionDate
 export async function getJobPredictions(
     datetime: number,
     regionId: number,
-    accuracyLimit: number = 0,
+    accuracyLimit: number = 10,
 ): Promise<FeatureCollection<Point, PredProperties>> {
     try {
         const response = await fetch(`${baseUrl}predictions-by-day-and-aoi?day=${datetime}&aoi_id=${regionId}&accuracy_limit=${accuracyLimit}`)

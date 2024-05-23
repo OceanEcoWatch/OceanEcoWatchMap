@@ -113,7 +113,7 @@ export function addPredictionLayer(map: mapboxgl.Map, datetime: number, regionId
                 'circle-color': [
                     'interpolate',
                     ['linear'],
-                    ['get', 'prob'],
+                    ['get', 'pixelValue'],
                     1,
                     '#ffffb2',
                     25,
@@ -139,7 +139,7 @@ export function addPredictionLayer(map: mapboxgl.Map, datetime: number, regionId
             if (e.features![0].geometry.type === 'Point') {
                 var coordinates = e.features![0].geometry.coordinates.slice()
                 var description = `20.02.2023<br>
-                               ${e.features![0].properties?.prob} %`
+                               ${e.features![0].properties?.pixelValue} %`
 
                 // Ensure that if the map is zoomed out such that multiple
                 // copies of the feature are visible, the popup appears
