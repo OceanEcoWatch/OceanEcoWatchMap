@@ -1,5 +1,7 @@
 import { Polygon, Position } from 'geojson'
 import mapboxgl from 'mapbox-gl'
+import moment from 'moment'
+import { colorCoding } from '../common/utils'
 import { getJobPredictions } from './mapService'
 
 export function addPolygonLayer(map: mapboxgl.Map, aoi: Polygon) {
@@ -37,16 +39,26 @@ export function addPredictionLayer(map: mapboxgl.Map, datetime: number, regionId
                     'interpolate',
                     ['linear'],
                     ['get', 'pixelValue'],
-                    1,
-                    '#ffffb2',
-                    25,
-                    '#fecc5c',
+                    10,
+                    colorCoding[10],
+                    20,
+                    colorCoding[20],
+                    30,
+                    colorCoding[30],
+                    40,
+                    colorCoding[40],
                     50,
-                    '#fd8d3c',
-                    75,
-                    '#f03b20',
+                    colorCoding[50],
+                    60,
+                    colorCoding[60],
+                    70,
+                    colorCoding[70],
+                    80,
+                    colorCoding[80],
+                    90,
+                    colorCoding[90],
                     100,
-                    '#bd0026',
+                    colorCoding[100],
                 ],
             },
         })
@@ -61,8 +73,8 @@ export function addPredictionLayer(map: mapboxgl.Map, datetime: number, regionId
 
             if (e.features![0].geometry.type === 'Point') {
                 var coordinates = e.features![0].geometry.coordinates.slice()
-                var description = `20.02.2023<br>
-                               ${e.features![0].properties?.pixelValue} %`
+                var description = `${moment.unix(datetime).format('DD.MM.YYYY HH:mm')}<br>
+                               ${e.features![0].properties?.pixelValue.toFixed(0)} %`
 
                 // Ensure that if the map is zoomed out such that multiple
                 // copies of the feature are visible, the popup appears

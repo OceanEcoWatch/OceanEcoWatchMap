@@ -1,8 +1,5 @@
-import { FeatureCollection, GeoJsonProperties, Point, Polygon, Position } from 'geojson'
 import mapboxgl from 'mapbox-gl'
-import { getJobPredictions } from './mapService'
 
-// todo cleanup, split into multiple services => region, predictions, jobs??
 export function getGlobeMap(mapContainerRef: React.RefObject<HTMLDivElement>) {
     return new mapboxgl.Map({
         container: mapContainerRef.current!,
@@ -31,7 +28,3 @@ export function addNavigationControls(map: mapboxgl.Map) {
     var nav = new mapboxgl.NavigationControl()
     map.addControl(nav, 'bottom-right')
 }
-
-
-
-

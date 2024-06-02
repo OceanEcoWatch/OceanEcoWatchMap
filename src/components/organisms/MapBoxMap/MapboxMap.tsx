@@ -11,9 +11,13 @@ import { addRegionLayer } from '../../../services/regionLayerService'
 import TopBanner from '../OEWHeader/OEWHeader'
 import './MapboxMap.css'
 // todo get rid of unused libraries
-// todo cleanup, extract functions into services
 // todo were proper component + variable names used?
-// todo atomic compoennt structure properly applied?
+
+// replace mock data
+// set aoi dynamic
+// play around with color scale
+// follow up issues for bug + pred points styling/ heat map points on top of each other
+
 // add linting + deployment in a github pipeline
 // todo sometimes after selecting many timestamps this error occurs: There is already a source with ID "pred-1698537600".
 const polygonManillaBay: Polygon = {
@@ -37,15 +41,16 @@ const MapboxMap: React.FC = () => {
     const mapContainerRef = useRef<HTMLDivElement>(null)
     const [map, setMap] = useState<mapboxgl.Map | null>(null)
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+    const [regionId, setRegionId] = useState<number>(2) // todo
+
     const openSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen)
     }
 
-    let regionId: number = 1 // todo set dynamic
-
     const [regionProps, setRegionProps] = useState<undefined | IRegionProperties>(undefined)
 
     function handleDaySelect(days: number[]) {
+        console.log('reg', regionId)
         let toBeAddedDays = days
         if (!map || !map.getStyle()) {
             console.error('Map is not initialized or no style is loaded')
@@ -82,16 +87,25 @@ const MapboxMap: React.FC = () => {
             .then((regions) => {
                 addRegionLayer(map, regions)
                 map.on('click', 'regions', (e) => {
-                    regionId = e.features![0].properties!.id // todo handle ! better
+                    setRegionId(e.features![0].properties!.id)
                     const regionName = e.features![0].properties!.name
+                    const regionSize = e.features![0].properties!.area_km2
+
+                    const aoiPolygon: Polygon = JSON.parse(e.features![0].properties!.polygon)
+
                     fetchRegionDatetimes(regionId).then((regionDatetimes) => {
                         map.setLayoutProperty('regions', 'visibility', 'none')
-                        map.fitBounds(getBoundingBox(polygonManillaBay)) // todo set polygon dynamic
+                        map.fitBounds(getBoundingBox(aoiPolygon))
 
-                        addPolygonLayer(map, polygonManillaBay)
+                        addPolygonLayer(map, aoiPolygon)
                         openSidebar()
                         const jobs = regionDatetimes.map((regionDatetimes) => regionDatetimes.timestamp)
-                        const regionProps: IRegionProperties = { id: regionId, name: regionName, jobs: jobs }
+                        const regionProps: IRegionProperties = {
+                            id: regionId,
+                            name: regionName,
+                            jobs: jobs,
+                            areaSize: regionSize,
+                        }
                         setRegionProps(regionProps)
                         addPredictionLayer(map, jobs[0], regionId)
                     })

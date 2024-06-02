@@ -1,6 +1,15 @@
 import { FeatureCollection, GeoJsonProperties, Point } from 'geojson'
 import mapboxgl from 'mapbox-gl'
 
+function capitalizeFirstLetterOfEachWord(input: string): string {
+    return input
+        .split(' ')
+        .map((word) => {
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        })
+        .join(' ')
+}
+
 function addRegionPopup(map: mapboxgl.Map) {
     const popup = new mapboxgl.Popup({
         closeButton: false,
@@ -14,7 +23,7 @@ function addRegionPopup(map: mapboxgl.Map) {
             const coordinates = event.features![0].geometry.coordinates.slice() ?? []
             const name = event.features![0].properties?.name
             const area = event.features![0].properties?.area_km2
-            const description = `<strong>${name}</strong><br>Size of the region: ${area}km<sup>2</sup>`
+            const description = `<strong>${capitalizeFirstLetterOfEachWord(name)}</strong><br>Size of the region: ${area.toFixed(2)} km<sup>2</sup>`
 
             while (Math.abs(event.lngLat.lng - coordinates[0]) > 180) {
                 coordinates[0] += event.lngLat.lng > coordinates[0] ? 360 : -360
