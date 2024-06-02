@@ -1,6 +1,6 @@
 import { Polygon } from 'geojson'
 
-export interface RegionProperties {
+export interface IAOICenterProperties {
     id: number
     name: string
     area_km2: number

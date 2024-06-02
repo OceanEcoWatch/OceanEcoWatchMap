@@ -1,20 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { Polygon } from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { fetchRegionDatetimes, fetchRegions } from '../../services/mapService'
-import { Polygon } from 'geojson'
-import Logo from '../../assets/logo.png'
-import TopBanner from '../molecules/TopBanner'
-import {
-    addNavigationControls,
-    addPolygonLayer,
-    addPredictionLayer,
-    addRegionLayer,
-    getBoundingBox,
-    getGlobeMap,
-    loadStyles,
-} from '../../services/mapboxService'
-import { RegionProperties } from '../../interfaces/Aoi'
+import React, { useEffect, useRef, useState } from 'react'
+import Logo from '../../../assets/logo.png'
+import { IRegionProperties } from '../../../interfaces/IRegionProperties'
+import { fetchRegionDatetimes, fetchRegions } from '../../../services/mapService'
+import { addNavigationControls, getGlobeMap, loadStyles } from '../../../services/mapboxService'
+import { addPolygonLayer, addPredictionLayer, getBoundingBox } from '../../../services/predictionLayerService'
+import { addRegionLayer } from '../../../services/regionLayerService'
+import TopBanner from '../OEWHeader/OEWHeader'
 import './MapboxMap.css'
 // todo get rid of unused libraries
 // todo cleanup, extract functions into services
@@ -49,7 +43,7 @@ const MapboxMap: React.FC = () => {
 
     let regionId: number = 1 // todo set dynamic
 
-    const [regionProps, setRegionProps] = useState<undefined | RegionProperties>(undefined)
+    const [regionProps, setRegionProps] = useState<undefined | IRegionProperties>(undefined)
 
     function handleDaySelect(days: number[]) {
         let toBeAddedDays = days
@@ -97,7 +91,7 @@ const MapboxMap: React.FC = () => {
                         addPolygonLayer(map, polygonManillaBay)
                         openSidebar()
                         const jobs = regionDatetimes.map((regionDatetimes) => regionDatetimes.timestamp)
-                        const regionProps: RegionProperties = { id: regionId, name: regionName, jobs: jobs }
+                        const regionProps: IRegionProperties = { id: regionId, name: regionName, jobs: jobs }
                         setRegionProps(regionProps)
                         addPredictionLayer(map, jobs[0], regionId)
                     })

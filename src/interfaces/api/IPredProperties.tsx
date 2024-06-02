@@ -1,4 +1,4 @@
-export interface PredProperties {
+export interface IPredProperties {
     pixelValue: number
     timestamp: number
 }
