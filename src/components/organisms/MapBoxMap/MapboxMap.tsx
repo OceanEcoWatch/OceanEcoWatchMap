@@ -10,31 +10,10 @@ import { addPolygonLayer, addPredictionLayer, getBoundingBox } from '../../../se
 import { addRegionLayer } from '../../../services/regionLayerService'
 import TopBanner from '../OEWHeader/OEWHeader'
 import './MapboxMap.css'
-// todo get rid of unused libraries
-// todo were proper component + variable names used?
 
-// replace mock data
-// set aoi dynamic
-// play around with color scale
-// follow up issues for bug + pred points styling/ heat map points on top of each other
+// todo bug
+// todo back button
 
-// add linting + deployment in a github pipeline
-// todo sometimes after selecting many timestamps this error occurs: There is already a source with ID "pred-1698537600".
-const polygonManillaBay: Polygon = {
-    type: 'Polygon',
-    coordinates: [
-        [
-            [120.55445110348722, 14.765904915254623],
-            [120.57958428212004, 14.578070043144436],
-            [120.55378543294222, 14.370241535899936],
-            [120.81447682398743, 14.381734486270588],
-            [120.97838024235841, 14.463345459093617],
-            [120.9527175423018, 14.62900311142576],
-            [120.81052707714883, 14.774179067742779],
-            [120.55445110348722, 14.765904915254623],
-        ],
-    ],
-} // todo actual polygon in db?
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY!
 
 const MapboxMap: React.FC = () => {
