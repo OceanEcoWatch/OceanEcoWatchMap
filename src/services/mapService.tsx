@@ -1,14 +1,15 @@
-import { FeatureCollection, Point, Polygon } from 'geojson'
-import { PredProperties } from '../interfaces/Prediction'
-import { RegionProperties } from '../interfaces/Region'
+import { FeatureCollection, Point } from 'geojson'
+import { IAOICenterProperties } from '../interfaces/api/IAOICenterProperties'
+import { IPredProperties } from '../interfaces/api/IPredProperties'
+import { IAPIRegionDatetimes, IRegionDatetime } from '../interfaces/api/IRegionDatetime'
 
-// todo remove mock objects, organise interfaces into separate folder
 var baseUrl = process.env.REACT_APP_API_URL
+
 if (baseUrl === undefined) {
     baseUrl = 'http://localhost:8000/'
 }
 
-export async function fetchRegions(): Promise<FeatureCollection<Point, RegionProperties>> {
+export async function fetchRegions(): Promise<FeatureCollection<Point, IAOICenterProperties>> {
     try {
         const response = await fetch(`${baseUrl}aoi-centers?bbox=-180,-90,180,90`)
         if (!response.ok) {
@@ -16,47 +17,32 @@ export async function fetchRegions(): Promise<FeatureCollection<Point, RegionPro
         }
 
         const regionsString: string = await response.json() // todo why is result a string?
-        const regions: FeatureCollection<Point, RegionProperties> = JSON.parse(regionsString)
+        const regions: FeatureCollection<Point, IAOICenterProperties> = JSON.parse(regionsString)
 
         return regions
     } catch (error) {
         console.error('Error loading regions:', error)
         throw error
     }
-    // todo use tanstack query?
+    // todo use tanstack query
 }
 
-export interface ImageData {
-    image_id: number
-    timestamp: number
-    geometry: Polygon
-}
-
-export interface APIRegionDatetimes {
-    [timestamp: string]: ImageData[]
-}
-
-export interface RegionDatetime {
-    timestamp: number
-    imageData: ImageData[]
-}
-
-function transformRegionDatetimes(request: APIRegionDatetimes): RegionDatetime[] {
+function transformRegionDatetimes(request: IAPIRegionDatetimes): IRegionDatetime[] {
     return Object.entries(request).map(([timestamp, imageData]) => ({
         timestamp: parseInt(timestamp, 10),
         imageData: imageData,
     }))
 }
 
-export async function fetchRegionDatetimes(regionId: number): Promise<RegionDatetime[]> {
+export async function fetchRegionDatetimes(regionId: number): Promise<IRegionDatetime[]> {
     try {
         const response = await fetch(`${baseUrl}images-by-day?aoiId=${regionId}`)
         if (!response.ok) {
             throw new Error('Network response was not ok ' + response.status)
         }
 
-        const apiRegionDatetimes: APIRegionDatetimes = await response.json()
-        const regionDatetimes: RegionDatetime[] = transformRegionDatetimes(apiRegionDatetimes)
+        const apiRegionDatetimes: IAPIRegionDatetimes = await response.json()
+        const regionDatetimes: IRegionDatetime[] = transformRegionDatetimes(apiRegionDatetimes)
 
         return regionDatetimes
     } catch (error) {
@@ -70,18 +56,19 @@ export async function getJobPredictions(
     datetime: number,
     regionId: number,
     accuracyLimit: number = 10,
-): Promise<FeatureCollection<Point, PredProperties>> {
+): Promise<FeatureCollection<Point, IPredProperties>> {
     try {
         const response = await fetch(`${baseUrl}predictions-by-day-and-aoi?day=${datetime}&aoi_id=${regionId}&accuracy_limit=${accuracyLimit}`)
         if (!response.ok) {
             throw new Error('Network response was not ok ' + response.status)
         }
 
-        const predictions: FeatureCollection<Point, PredProperties> = await response.json()
+        const predictions: FeatureCollection<Point, IPredProperties> = await response.json()
 
         return predictions
     } catch (error) {
         console.error('Error loading job predictions:', error)
         throw error
     }
+    //   todo use tanstack query
 }

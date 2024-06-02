@@ -1,7 +1,12 @@
 .mapboxgl-ctrl-group {
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(37, 37, 37, 0.7);
     border-radius: 4px; 
-    color: white
+    color: white;
+    padding: 5px 0;
+}
+
+.mapboxgl-ctrl-group:hover {
+    background-color: rgba(58, 57, 57, 0.7);
 }
 
 .mapboxgl-ctrl-zoom-in, .mapboxgl-ctrl-zoom-out {

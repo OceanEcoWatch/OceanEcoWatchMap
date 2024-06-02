@@ -1,3 +1,4 @@
+import { colorCoding } from '../../../common/utils'
 import './ProbabilityLegend.css'
 
 interface Probability {
@@ -7,16 +8,16 @@ interface Probability {
 
 export const ProbabilityLegend: React.FC = () => {
     const probabilities: Probability[] = [
-        { percent: '10%', color: 'bg-green-200' },
-        { percent: '20%', color: 'bg-green-400' },
-        { percent: '30%', color: 'bg-yellow-200' },
-        { percent: '40%', color: 'bg-yellow-400' },
-        { percent: '50%', color: 'bg-yellow-600' },
-        { percent: '60%', color: 'bg-orange-200' },
-        { percent: '70%', color: 'bg-orange-400' },
-        { percent: '80%', color: 'bg-red-400' },
-        { percent: '90%', color: 'bg-red-600' },
-        { percent: '100%', color: 'bg-red-800' },
+        { percent: '10%', color: colorCoding[10] },
+        { percent: '20%', color: colorCoding[20] },
+        { percent: '30%', color: colorCoding[30] },
+        { percent: '40%', color: colorCoding[40] },
+        { percent: '50%', color: colorCoding[50] },
+        { percent: '60%', color: colorCoding[60] },
+        { percent: '70%', color: colorCoding[70] },
+        { percent: '80%', color: colorCoding[80] },
+        { percent: '90%', color: colorCoding[90] },
+        { percent: '100%', color: colorCoding[100] },
     ]
     return (
         <div id="legend-div">
@@ -24,7 +25,7 @@ export const ProbabilityLegend: React.FC = () => {
 
             {probabilities.map((prob) => (
                 <div key={prob.percent} className="flex items-center mb-1 text-sm">
-                    <span className={`h-4 w-4 ${prob.color} block mr-2`}></span>
+                    <span className={`h-4 w-4 block mr-2`} style={{ backgroundColor: prob.color }}></span>
                     <span>{prob.percent}</span>
                 </div>
             ))}
