@@ -15,7 +15,7 @@ export const AreaDetails: React.FC<AreaDetailsProps> = ({ areaSize, firstAnalysi
                 <tbody>
                     <tr>
                         <td>
-                            <p>asd</p>
+                            <p>Size of the region:</p>
                         </td>
 
                         <td>

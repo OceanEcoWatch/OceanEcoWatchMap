@@ -24,7 +24,7 @@ export async function fetchRegions(): Promise<FeatureCollection<Point, IAOICente
         console.error('Error loading regions:', error)
         throw error
     }
-    // todo use tanstack query?
+    // todo use tanstack query
 }
 
 function transformRegionDatetimes(request: IAPIRegionDatetimes): IRegionDatetime[] {

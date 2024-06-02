@@ -11,16 +11,13 @@ import { addRegionLayer } from '../../../services/regionLayerService'
 import TopBanner from '../OEWHeader/OEWHeader'
 import './MapboxMap.css'
 
-// todo bug
-// todo back button
-
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY!
 
 const MapboxMap: React.FC = () => {
     const mapContainerRef = useRef<HTMLDivElement>(null)
     const [map, setMap] = useState<mapboxgl.Map | null>(null)
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-    const [regionId, setRegionId] = useState<number>(2) // todo
+    const [regionId, setRegionId] = useState<number>(2)
 
     const openSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen)
@@ -29,7 +26,6 @@ const MapboxMap: React.FC = () => {
     const [regionProps, setRegionProps] = useState<undefined | IRegionProperties>(undefined)
 
     function handleDaySelect(days: number[]) {
-        console.log('reg', regionId)
         let toBeAddedDays = days
         if (!map || !map.getStyle()) {
             console.error('Map is not initialized or no style is loaded')
@@ -97,7 +93,7 @@ const MapboxMap: React.FC = () => {
 
     return (
         <div>
-            <TopBanner logo={Logo} isOpen={isSidebarOpen} regionProps={regionProps} handleSelectDays={handleDaySelect}></TopBanner>
+            <TopBanner logo={Logo} isOpen={isSidebarOpen} regionProps={regionProps} handleSelectDays={handleDaySelect} map={map!}></TopBanner>
             <div ref={mapContainerRef} className="map-container h-screen"></div>
         </div>
     )

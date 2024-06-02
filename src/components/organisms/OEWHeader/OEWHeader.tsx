@@ -1,3 +1,4 @@
+import mapboxgl from 'mapbox-gl'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { IDayOption } from '../../../interfaces/IDayOption'
@@ -13,9 +14,10 @@ interface OEWHeaderProps {
     isOpen: boolean
     regionProps: undefined | IRegionProperties
     handleSelectDays: (days: number[]) => void
+    map: mapboxgl.Map
 }
 
-const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handleSelectDays }) => {
+const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handleSelectDays, map }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(isOpen)
     const [infoIsOpen, setInfo] = useState(false)
 
@@ -58,7 +60,7 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
                     {regionProps !== undefined && (
                         <div className="container flex flex-col justify-between h-full">
                             <div>
-                                <BackButton></BackButton>
+                                <BackButton map={map}></BackButton>
                                 <AreaDetails
                                     areaSize={regionProps.areaSize}
                                     firstAnalysis={regionProps.jobs[0]}
