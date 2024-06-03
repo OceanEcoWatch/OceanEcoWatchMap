@@ -5,6 +5,7 @@ import { IAPIRegionDatetimes, IRegionDatetime } from '../interfaces/api/IRegionD
 
 var baseUrl = process.env.REACT_APP_API_URL
 
+//when the example value is used in the env (if none provided http://localhost:8000/ will be used) the baseUrl is not undefined and a faulty endpoint is used to make the fetches
 if (baseUrl === undefined) {
     baseUrl = 'http://localhost:8000/'
 }
