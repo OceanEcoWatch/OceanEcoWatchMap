@@ -1,4 +1,5 @@
 import mapboxgl from 'mapbox-gl'
+import { MapProjection } from '../components/organisms/MapBoxMap/MapboxMap'
 
 export function getGlobeMap(mapContainerRef: React.RefObject<HTMLDivElement>) {
     return new mapboxgl.Map({
@@ -27,4 +28,15 @@ export function loadStyles(map: mapboxgl.Map) {
 export function addNavigationControls(map: mapboxgl.Map) {
     var nav = new mapboxgl.NavigationControl()
     map.addControl(nav, 'bottom-right')
+}
+
+export function toggleMapProjection(map: mapboxgl.Map, setCurrentMapProjection: (projection: MapProjection) => void) {
+    const currentProjection = map.getProjection()
+    if (currentProjection.name === 'globe') {
+        map.setProjection('mercator')
+        setCurrentMapProjection('flat')
+    } else {
+        map.setProjection('globe')
+        setCurrentMapProjection('globe')
+    }
 }
