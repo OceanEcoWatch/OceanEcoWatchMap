@@ -1,5 +1,6 @@
-import type { MapProjection } from '../../organisms/MapBoxMap/MapboxMap'
 import React from 'react'
+
+export type MapProjection = 'globe' | 'flat'
 
 type ToggleMapProjectionProps = {
     currentProjection: MapProjection
