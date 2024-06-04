@@ -21,6 +21,7 @@ const MapboxMap: React.FC = () => {
     // this causes the react query hook to refetch the data with the state is updated to null, so i left it emtpy
     // const [regionId, setRegionId] = useState<number | null>(null)
     const [regionId, setRegionId] = useState<number>()
+    const [fetchingPredictionsForDay, setFetchingPredictionsForDay] = useState<number>()
 
     const openSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen)
@@ -30,6 +31,7 @@ const MapboxMap: React.FC = () => {
     const [regionData, setRegionData] = useState<undefined | IRegionData>(undefined)
 
     function handleDaySelect(days: number[]) {
+        console.log('Selected days:', days)
         let toBeAddedDays = days
         if (!map || !map.getStyle()) {
             console.error('Map is not initialized or no style is loaded')
@@ -57,10 +59,20 @@ const MapboxMap: React.FC = () => {
             if (map.getLayer(`pred-${day}:${regionId}`)) {
                 map.setLayoutProperty(`pred-${day}:${regionId}`, 'visibility', 'visible')
             } else {
-                addPredictionLayer(map, day, regionId!)
+                setFetchingPredictionsForDay(day)
+                //use thhis reacr query hook to fetch the data
+                //const { data: jobPredictions, isLoading, error } = useJobPredictions(datetime, regionId);
+                //addPredictionLayer(map, day, regionId!)
             }
         })
     }
+
+    const { isPending: fetchingPredictionOfDay } = useQuery({
+        queryKey: [`pred-${fetchingPredictionsForDay}:${regionId}`],
+        queryFn: () => addPredictionLayer(map!, fetchingPredictionsForDay, regionId),
+        enabled: fetchingPredictionsForDay !== null && regionId !== null,
+        refetchOnWindowFocus: false,
+    })
 
     useEffect(() => {
         const map = getGlobeMap(mapContainerRef)
@@ -127,7 +139,9 @@ const MapboxMap: React.FC = () => {
 
         const regionDatetimes = await fetchRegionDatetimes(regionId)
         const regionJobs = regionDatetimes.map((regionDatetimes) => regionDatetimes.timestamp)
-        addPredictionLayer(map, regionJobs[0], regionId)
+
+        setFetchingPredictionsForDay(regionJobs[0])
+        //addPredictionLayer(map, regionJobs[0], regionId)
 
         map.setLayoutProperty('regions', 'visibility', 'none')
         map.fitBounds(getBoundingBox(regionData?.polygon!))
@@ -192,6 +206,25 @@ const MapboxMap: React.FC = () => {
                     }}
                 >
                     <h1 style={{ color: 'white' }}>Fetching Regions Data...</h1>
+                </div>
+            )}
+
+            {fetchingPredictionOfDay && (
+                <div
+                    style={{
+                        zIndex: 1000,
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    }}
+                >
+                    <h1 style={{ color: 'white' }}>Fetching Prediction of a Day...</h1>
                 </div>
             )}
 
