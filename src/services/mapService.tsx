@@ -2,6 +2,7 @@ import { FeatureCollection, Point } from 'geojson'
 import { IAOICenterProperties } from '../interfaces/api/IAOICenterProperties'
 import { IPredProperties } from '../interfaces/api/IPredProperties'
 import { IAPIRegionDatetimes, IRegionDatetime } from '../interfaces/api/IRegionDatetime'
+import { RegionId } from '../components/organisms/MapBoxMap/types'
 
 var baseUrl = process.env.REACT_APP_API_URL
 
@@ -34,7 +35,7 @@ function transformRegionDatetimes(request: IAPIRegionDatetimes): IRegionDatetime
     }))
 }
 
-export async function fetchRegionDatetimes(regionId: number): Promise<IRegionDatetime[]> {
+export async function fetchRegionDatetimes(regionId: RegionId): Promise<IRegionDatetime[]> {
     try {
         const response = await fetch(`${baseUrl}images-by-day?aoiId=${regionId}`)
         if (!response.ok) {
