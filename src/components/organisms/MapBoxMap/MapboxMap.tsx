@@ -83,16 +83,10 @@ const MapboxMap: React.FC = () => {
         return () => map.remove()
     }, [])
 
-    async function fetchRegionsWithTimeout() {
-        //timout to simulate loading
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-        return await fetchRegions()
-    }
-
     const { isPending: fetchingAoiCenters, data } = useQuery({
         queryKey: ['regions'],
         // queryFn: fetchRegions,
-        queryFn: async () => await fetchRegionsWithTimeout(),
+        queryFn: async () => await fetchRegions(),
     })
 
     useEffect(() => {
@@ -135,7 +129,7 @@ const MapboxMap: React.FC = () => {
         if (!regionId) return []
 
         //timout to simulate loading
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        //await new Promise((resolve) => setTimeout(resolve, 1000))
 
         const regionDatetimes = await fetchRegionDatetimes(regionId)
         const regionJobs = regionDatetimes.map((regionDatetimes) => regionDatetimes.timestamp)

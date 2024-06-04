@@ -29,7 +29,7 @@ export async function addPredictionLayer(map: mapboxgl.Map, datetime: number | u
     }
 
     //timout to simulate loading
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    //await new Promise((resolve) => setTimeout(resolve, 1000))
 
     const predictions = await getJobPredictions(datetime, regionId)
 
