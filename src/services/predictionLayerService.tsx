@@ -21,85 +21,95 @@ export function addPolygonLayer(map: mapboxgl.Map, aoi: Polygon) {
         },
     })
 }
+export async function addPredictionLayer(map: mapboxgl.Map, datetime: number | undefined, regionId: number | undefined): Promise<any> {
+    if (!datetime || !regionId) {
+        console.error('Datetime', datetime)
+        console.error('RegionId', regionId)
+        return []
+    }
 
-export function addPredictionLayer(map: mapboxgl.Map, datetime: number, regionId: number) {
-    getJobPredictions(datetime, regionId).then((predictions) => {
-        //check if source already exists
-        if (map.getSource(`pred-${datetime}:${regionId}`)) {
-            map.removeLayer(`pred-${datetime}:${regionId}`)
-            map.removeSource(`pred-${datetime}:${regionId}`)
-        }
+    //timout to simulate loading
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
-        map.addSource(`pred-${datetime}:${regionId}`, {
-            type: 'geojson',
-            data: predictions,
-        })
+    const predictions = await getJobPredictions(datetime, regionId)
 
-        map.addLayer({
-            id: `pred-${datetime}:${regionId}`,
-            type: 'circle',
-            source: `pred-${datetime}:${regionId}`,
-            paint: {
-                'circle-radius': 10,
-                'circle-color': [
-                    'interpolate',
-                    ['linear'],
-                    ['get', 'pixelValue'],
-                    10,
-                    colorCoding[10],
-                    20,
-                    colorCoding[20],
-                    30,
-                    colorCoding[30],
-                    40,
-                    colorCoding[40],
-                    50,
-                    colorCoding[50],
-                    60,
-                    colorCoding[60],
-                    70,
-                    colorCoding[70],
-                    80,
-                    colorCoding[80],
-                    90,
-                    colorCoding[90],
-                    100,
-                    colorCoding[100],
-                ],
-            },
-        })
+    //check if source already exists
+    if (map.getSource(`pred-${datetime}:${regionId}`)) {
+        map.removeLayer(`pred-${datetime}:${regionId}`)
+        map.removeSource(`pred-${datetime}:${regionId}`)
+    }
 
-        var popup = new mapboxgl.Popup({
-            closeButton: false,
-            closeOnClick: false,
-        })
-
-        map.on('mouseenter', `pred-${datetime}:${regionId}`, function (e) {
-            map.getCanvas().style.cursor = 'pointer'
-
-            if (e.features![0].geometry.type === 'Point') {
-                var coordinates = e.features![0].geometry.coordinates.slice()
-                var description = `${moment.unix(datetime).format('DD.MM.YYYY HH:mm')}<br>
-                               ${e.features![0].properties?.pixelValue.toFixed(0)} %`
-
-                // Ensure that if the map is zoomed out such that multiple
-                // copies of the feature are visible, the popup appears
-                // over the copy being pointed to.
-                while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-                    coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360
-                }
-
-                // Populate the popup and set its coordinates
-                // based on the feature found.
-                popup.setLngLat([coordinates[0], coordinates[1]]).setHTML(description).addTo(map)
-            }
-        })
-
-        map.on('mouseleave', `pred-${datetime}:${regionId}`, function () {
-            map.getCanvas().style.cursor = ''
-            popup.remove()
-        })
+    map.addSource(`pred-${datetime}:${regionId}`, {
+        type: 'geojson',
+        data: predictions,
     })
+
+    map.addLayer({
+        id: `pred-${datetime}:${regionId}`,
+        type: 'circle',
+        source: `pred-${datetime}:${regionId}`,
+        paint: {
+            'circle-radius': 10,
+            'circle-color': [
+                'interpolate',
+                ['linear'],
+                ['get', 'pixelValue'],
+                10,
+                colorCoding[10],
+                20,
+                colorCoding[20],
+                30,
+                colorCoding[30],
+                40,
+                colorCoding[40],
+                50,
+                colorCoding[50],
+                60,
+                colorCoding[60],
+                70,
+                colorCoding[70],
+                80,
+                colorCoding[80],
+                90,
+                colorCoding[90],
+                100,
+                colorCoding[100],
+            ],
+        },
+    })
+
+    var popup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+    })
+
+    map.on('mouseenter', `pred-${datetime}:${regionId}`, function (e) {
+        map.getCanvas().style.cursor = 'pointer'
+
+        if (e.features![0].geometry.type === 'Point') {
+            var coordinates = e.features![0].geometry.coordinates.slice()
+            var description = `${moment.unix(datetime).format('DD.MM.YYYY HH:mm')}<br>
+                           ${e.features![0].properties?.pixelValue.toFixed(0)} %`
+
+            // Ensure that if the map is zoomed out such that multiple
+            // copies of the feature are visible, the popup appears
+            // over the copy being pointed to.
+            while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360
+            }
+
+            // Populate the popup and set its coordinates
+            // based on the feature found.
+            popup.setLngLat([coordinates[0], coordinates[1]]).setHTML(description).addTo(map)
+        }
+    })
+
+    map.on('mouseleave', `pred-${datetime}:${regionId}`, function () {
+        map.getCanvas().style.cursor = ''
+        popup.remove()
+    })
+
+    return predictions
 }
 
 export function getBoundingBox(polygon: Polygon): [number, number, number, number] {
