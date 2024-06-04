@@ -7,7 +7,7 @@ import { IRegionProperties } from '../../../interfaces/IRegionProperties'
 import { fetchRegionDatetimes, fetchRegions } from '../../../services/mapService'
 import { addNavigationControls, getGlobeMap, loadStyles } from '../../../services/mapboxService'
 import { addPolygonLayer, addPredictionLayer, getBoundingBox } from '../../../services/predictionLayerService'
-import { addRegionLayer } from '../../../services/regionLayerService'
+import { addClusteredRegions, addRegionLayer } from '../../../services/regionLayerService'
 import TopBanner from '../OEWHeader/OEWHeader'
 import './MapboxMap.css'
 
@@ -52,23 +52,20 @@ const MapboxMap: React.FC = () => {
         })
     }
 
-    useEffect(() => {
-        const map = getGlobeMap(mapContainerRef)
-        setMap(map)
-        loadStyles(map)
-        addNavigationControls(map)
-
+    function displayRegions(map: mapboxgl.Map) {
         fetchRegions()
             .then((regions) => {
                 addRegionLayer(map, regions)
                 map.on('click', 'regions', (e) => {
+                    const currentRegionId: number = e.features![0].properties!.id
+
                     setRegionId(e.features![0].properties!.id)
                     const regionName = e.features![0].properties!.name
                     const regionSize = e.features![0].properties!.area_km2
 
                     const aoiPolygon: Polygon = JSON.parse(e.features![0].properties!.polygon)
 
-                    fetchRegionDatetimes(regionId).then((regionDatetimes) => {
+                    fetchRegionDatetimes(currentRegionId).then((regionDatetimes) => {
                         map.setLayoutProperty('regions', 'visibility', 'none')
                         map.fitBounds(getBoundingBox(aoiPolygon))
 
@@ -76,17 +73,39 @@ const MapboxMap: React.FC = () => {
                         openSidebar()
                         const jobs = regionDatetimes.map((regionDatetimes) => regionDatetimes.timestamp)
                         const regionProps: IRegionProperties = {
-                            id: regionId,
+                            id: currentRegionId,
                             name: regionName,
                             jobs: jobs,
                             areaSize: regionSize,
                         }
                         setRegionProps(regionProps)
-                        addPredictionLayer(map, jobs[0], regionId)
+                        addPredictionLayer(map, jobs[0], currentRegionId)
                     })
                 })
             })
             .catch((error) => console.error('Failed to load regions on map:', error))
+    }
+
+    useEffect(() => {
+        const map = getGlobeMap(mapContainerRef)
+        setMap(map)
+        loadStyles(map)
+        addNavigationControls(map)
+
+        map.on('style.load', () => {
+            addClusteredRegions(map)
+            map.on('click', 'clusteredRegions', (e) => {
+                map.setLayoutProperty('clusteredRegions', 'visibility', 'none')
+                map.flyTo({
+                    center: [120.9749, 14.5547],
+                    zoom: 12,
+                    speed: 1.9,
+                    curve: 1,
+                    essential: false,
+                })
+                displayRegions(map)
+            })
+        })
 
         return () => map.remove()
     }, [])

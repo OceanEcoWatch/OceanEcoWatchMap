@@ -21,13 +21,14 @@ export const BackButton: React.FC<{ map: mapboxgl.Map }> = ({ map }) => {
         })
 
         map.removeLayer('polygon-layer')
-
         map.removeSource('polygon-source')
+        map.removeLayer('regions')
+        map.removeSource('regions')
     }
 
     function flyOutAddRegionLayer(map: mapboxgl.Map, center: mapboxgl.LngLatLike = [120.825223033, 14.642099128], zoom = 2) {
         map.on('moveend', () => {
-            map.setLayoutProperty('regions', 'visibility', 'visible')
+            map.setLayoutProperty('clusteredRegions', 'visibility', 'visible')
         })
 
         map.flyTo({
