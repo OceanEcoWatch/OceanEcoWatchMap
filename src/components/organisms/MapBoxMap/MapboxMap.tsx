@@ -53,8 +53,9 @@ const MapboxMap: React.FC = () => {
         })
         // add newly selected days
         toBeAddedDays.forEach((day) => {
-            if (map.getLayer(`pred-${day}`)) {
-                map.setLayoutProperty(`pred-${day}`, 'visibility', 'visible')
+            console.log('Adding day:', day)
+            if (map.getLayer(`pred-${day}:${regionId}`)) {
+                map.setLayoutProperty(`pred-${day}:${regionId}`, 'visibility', 'visible')
             } else {
                 addPredictionLayer(map, day, regionId!)
             }

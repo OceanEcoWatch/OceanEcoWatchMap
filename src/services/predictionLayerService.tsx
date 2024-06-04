@@ -24,15 +24,21 @@ export function addPolygonLayer(map: mapboxgl.Map, aoi: Polygon) {
 
 export function addPredictionLayer(map: mapboxgl.Map, datetime: number, regionId: number) {
     getJobPredictions(datetime, regionId).then((predictions) => {
-        map.addSource(`pred-${datetime}`, {
+        //check if source already exists
+        if (map.getSource(`pred-${datetime}:${regionId}`)) {
+            map.removeLayer(`pred-${datetime}:${regionId}`)
+            map.removeSource(`pred-${datetime}:${regionId}`)
+        }
+
+        map.addSource(`pred-${datetime}:${regionId}`, {
             type: 'geojson',
             data: predictions,
         })
 
         map.addLayer({
-            id: `pred-${datetime}`,
+            id: `pred-${datetime}:${regionId}`,
             type: 'circle',
-            source: `pred-${datetime}`,
+            source: `pred-${datetime}:${regionId}`,
             paint: {
                 'circle-radius': 10,
                 'circle-color': [
@@ -68,7 +74,7 @@ export function addPredictionLayer(map: mapboxgl.Map, datetime: number, regionId
             closeOnClick: false,
         })
 
-        map.on('mouseenter', `pred-${datetime}`, function (e) {
+        map.on('mouseenter', `pred-${datetime}:${regionId}`, function (e) {
             map.getCanvas().style.cursor = 'pointer'
 
             if (e.features![0].geometry.type === 'Point') {
@@ -89,7 +95,7 @@ export function addPredictionLayer(map: mapboxgl.Map, datetime: number, regionId
             }
         })
 
-        map.on('mouseleave', `pred-${datetime}`, function () {
+        map.on('mouseleave', `pred-${datetime}:${regionId}`, function () {
             map.getCanvas().style.cursor = ''
             popup.remove()
         })
