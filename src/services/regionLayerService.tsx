@@ -1,5 +1,7 @@
-import { FeatureCollection, GeoJsonProperties, Point } from 'geojson'
+import { FeatureCollection, GeoJsonProperties, Point, Polygon } from 'geojson'
 import mapboxgl from 'mapbox-gl'
+import { IRegionData } from '../components/organisms/MapBoxMap/types'
+import { time } from 'console'
 
 function capitalizeFirstLetterOfEachWord(input: string): string {
     return input
@@ -37,16 +39,20 @@ function addRegionPopup(map: mapboxgl.Map) {
     })
 }
 
-export function addRegionLayer(map: mapboxgl.Map, regions: FeatureCollection<Point, GeoJsonProperties>) {
-    map.addSource('regions', {
+export function addAoiCentersLayer(
+    map: mapboxgl.Map,
+    regions: FeatureCollection<Point, GeoJsonProperties>,
+    stateSetter: (regionData: IRegionData) => void,
+): void {
+    map.addSource('aoi-centers', {
         type: 'geojson',
         data: regions,
     })
 
     map.addLayer({
-        id: 'regions',
+        id: 'aoi-centers',
         type: 'circle',
-        source: 'regions',
+        source: 'aoi-centers',
         paint: {
             'circle-color': '#ff0000',
             'circle-radius': 9,
@@ -55,4 +61,17 @@ export function addRegionLayer(map: mapboxgl.Map, regions: FeatureCollection<Poi
         },
     })
     addRegionPopup(map)
+    map.on('click', 'aoi-centers', (e) => {
+        const regionId = e.features![0].properties!.id
+        const regionName = e.features![0].properties!.name
+        const regionSize = e.features![0].properties!.area_km2
+        const regionPolygon: Polygon = JSON.parse(e.features![0].properties!.polygon)
+        stateSetter({
+            id: regionId,
+            timestamps: [],
+            name: regionName,
+            areaSize: regionSize,
+            polygon: regionPolygon,
+        })
+    })
 }

@@ -1,8 +1,8 @@
-import { Polygon, Position } from 'geojson'
+import { FeatureCollection, Point, Polygon, Position } from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import moment from 'moment'
 import { colorCoding } from '../common/utils'
-import { getJobPredictions } from './mapService'
+import { IPredProperties } from '../interfaces/api/IPredProperties'
 
 export function addPolygonLayer(map: mapboxgl.Map, aoi: Polygon) {
     map.addSource('polygon-source', {
@@ -22,77 +22,80 @@ export function addPolygonLayer(map: mapboxgl.Map, aoi: Polygon) {
     })
 }
 
-export function addPredictionLayer(map: mapboxgl.Map, datetime: number, regionId: number) {
-    getJobPredictions(datetime, regionId).then((predictions) => {
-        map.addSource(`pred-${datetime}`, {
-            type: 'geojson',
-            data: predictions,
-        })
+export function addPredictionLayer(
+    map: mapboxgl.Map,
+    datetime: number,
+    aoiId: number,
+    predictionQueryData: FeatureCollection<Point, IPredProperties>,
+) {
+    map.addSource(`prediction-${datetime}-${aoiId}`, {
+        type: 'geojson',
+        data: predictionQueryData,
+    })
 
-        map.addLayer({
-            id: `pred-${datetime}`,
-            type: 'circle',
-            source: `pred-${datetime}`,
-            paint: {
-                'circle-radius': 10,
-                'circle-color': [
-                    'interpolate',
-                    ['linear'],
-                    ['get', 'pixelValue'],
-                    10,
-                    colorCoding[10],
-                    20,
-                    colorCoding[20],
-                    30,
-                    colorCoding[30],
-                    40,
-                    colorCoding[40],
-                    50,
-                    colorCoding[50],
-                    60,
-                    colorCoding[60],
-                    70,
-                    colorCoding[70],
-                    80,
-                    colorCoding[80],
-                    90,
-                    colorCoding[90],
-                    100,
-                    colorCoding[100],
-                ],
-            },
-        })
+    map.addLayer({
+        id: `prediction-${datetime}-${aoiId}`,
+        type: 'circle',
+        source: `prediction-${datetime}-${aoiId}`,
+        paint: {
+            'circle-radius': 10,
+            'circle-color': [
+                'interpolate',
+                ['linear'],
+                ['get', 'pixelValue'],
+                10,
+                colorCoding[10],
+                20,
+                colorCoding[20],
+                30,
+                colorCoding[30],
+                40,
+                colorCoding[40],
+                50,
+                colorCoding[50],
+                60,
+                colorCoding[60],
+                70,
+                colorCoding[70],
+                80,
+                colorCoding[80],
+                90,
+                colorCoding[90],
+                100,
+                colorCoding[100],
+            ],
+        },
+    })
 
-        var popup = new mapboxgl.Popup({
-            closeButton: false,
-            closeOnClick: false,
-        })
+    var popup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+    })
 
-        map.on('mouseenter', `pred-${datetime}`, function (e) {
-            map.getCanvas().style.cursor = 'pointer'
+    map.on('mouseenter', `prediction-${datetime}-${aoiId}`, function (e) {
+        map.getCanvas().style.cursor = 'pointer'
 
-            if (e.features![0].geometry.type === 'Point') {
-                var coordinates = e.features![0].geometry.coordinates.slice()
-                var description = `${moment.unix(datetime).format('DD.MM.YYYY HH:mm')}<br>
+        if (e.features![0].geometry.type === 'Point') {
+            var coordinates = e.features![0].geometry.coordinates.slice()
+            var description = `${moment.unix(datetime).format('DD.MM.YYYY HH:mm')}<br>
                                ${e.features![0].properties?.pixelValue.toFixed(0)} %`
 
-                // Ensure that if the map is zoomed out such that multiple
-                // copies of the feature are visible, the popup appears
-                // over the copy being pointed to.
-                while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-                    coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360
-                }
-
-                // Populate the popup and set its coordinates
-                // based on the feature found.
-                popup.setLngLat([coordinates[0], coordinates[1]]).setHTML(description).addTo(map)
+            // Ensure that if the map is zoomed out such that multiple
+            // copies of the feature are visible, the popup appears
+            // over the copy being pointed to.
+            while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360
             }
-        })
 
-        map.on('mouseleave', `pred-${datetime}`, function () {
-            map.getCanvas().style.cursor = ''
-            popup.remove()
-        })
+            // Populate the popup and set its coordinates
+            // based on the feature found.
+            popup.setLngLat([coordinates[0], coordinates[1]]).setHTML(description).addTo(map)
+        }
+    })
+
+    map.on('mouseleave', `prediction-${datetime}-${aoiId}`, function () {
+        map.getCanvas().style.cursor = ''
+        popup.remove()
     })
 }
 
