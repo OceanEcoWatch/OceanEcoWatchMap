@@ -76,6 +76,7 @@ const MapboxMap: React.FC = () => {
 
     useEffect(() => {
         const map = getGlobeMap(mapContainerRef)
+
         setMap(map)
         loadStyles(map)
         addNavigationControls(map)
@@ -85,12 +86,13 @@ const MapboxMap: React.FC = () => {
 
     const { isPending: fetchingAoiCenters, data } = useQuery({
         queryKey: ['regions'],
-        // queryFn: fetchRegions,
         queryFn: async () => await fetchRegions(),
     })
 
     useEffect(() => {
+        console.log('this is the useEffect and it dfired')
         if (data && map) {
+            console.log('actualy logic')
             loadRegionsOnMap(data)
         }
     }, [data, map])
@@ -135,7 +137,7 @@ const MapboxMap: React.FC = () => {
         const regionJobs = regionDatetimes.map((regionDatetimes) => regionDatetimes.timestamp)
 
         setFetchingPredictionsForDay(regionJobs[0])
-        //addPredictionLayer(map, regionJobs[0], regionId)
+        addPredictionLayer(map, regionJobs[0], regionId)
 
         map.setLayoutProperty('regions', 'visibility', 'none')
         map.fitBounds(getBoundingBox(regionData?.polygon!))
@@ -159,7 +161,7 @@ const MapboxMap: React.FC = () => {
     const { isPending: fetchingRegionData } = useQuery({
         queryKey: [`regionData${regionId}`, regionId],
         queryFn: async () => await fetchRegionDatetimesWithTimeout(regionId!),
-        enabled: regionId !== null,
+        enabled: !regionId,
         refetchOnWindowFocus: false,
     })
 
