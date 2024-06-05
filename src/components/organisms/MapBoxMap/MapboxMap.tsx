@@ -10,6 +10,7 @@ import { addPolygonLayer, addPredictionLayer, getBoundingBox } from '../../../se
 import { addRegionLayer } from '../../../services/regionLayerService'
 import TopBanner from '../OEWHeader/OEWHeader'
 import './MapboxMap.css'
+import { RegionId } from './types'
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY!
 
@@ -17,7 +18,7 @@ const MapboxMap: React.FC = () => {
     const mapContainerRef = useRef<HTMLDivElement>(null)
     const [map, setMap] = useState<mapboxgl.Map | null>(null)
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-    const [regionId, setRegionId] = useState<number>(2)
+    const [regionId, setRegionId] = useState<RegionId>(null)
 
     const openSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen)
@@ -26,6 +27,10 @@ const MapboxMap: React.FC = () => {
     const [regionProps, setRegionProps] = useState<undefined | IRegionProperties>(undefined)
 
     function handleDaySelect(days: number[]) {
+        if (!regionId) {
+            console.error('Cannot handleDaySelect - No region selected')
+            return
+        }
         let toBeAddedDays = days
         if (!map || !map.getStyle()) {
             console.error('Map is not initialized or no style is loaded')
@@ -62,13 +67,18 @@ const MapboxMap: React.FC = () => {
             .then((regions) => {
                 addRegionLayer(map, regions)
                 map.on('click', 'regions', (e) => {
-                    setRegionId(e.features![0].properties!.id)
+                    const regionIdToSet = e.features![0].properties!.id
+                    if (!regionIdToSet) {
+                        console.error('Failed to set regionId, click event missing:', regionIdToSet)
+                        return
+                    }
+                    setRegionId(regionIdToSet) // This is async, so we will continue with the var "regionIdToSet"
                     const regionName = e.features![0].properties!.name
                     const regionSize = e.features![0].properties!.area_km2
 
                     const aoiPolygon: Polygon = JSON.parse(e.features![0].properties!.polygon)
 
-                    fetchRegionDatetimes(regionId).then((regionDatetimes) => {
+                    fetchRegionDatetimes(regionIdToSet).then((regionDatetimes) => {
                         map.setLayoutProperty('regions', 'visibility', 'none')
                         map.fitBounds(getBoundingBox(aoiPolygon))
 
@@ -76,13 +86,13 @@ const MapboxMap: React.FC = () => {
                         openSidebar()
                         const jobs = regionDatetimes.map((regionDatetimes) => regionDatetimes.timestamp)
                         const regionProps: IRegionProperties = {
-                            id: regionId,
+                            id: regionIdToSet,
                             name: regionName,
                             jobs: jobs,
                             areaSize: regionSize,
                         }
                         setRegionProps(regionProps)
-                        addPredictionLayer(map, jobs[0], regionId)
+                        addPredictionLayer(map, jobs[0], regionIdToSet)
                     })
                 })
             })
