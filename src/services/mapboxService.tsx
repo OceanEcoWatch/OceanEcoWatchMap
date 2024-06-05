@@ -5,7 +5,7 @@ export function getGlobeMap(mapContainerRef: React.RefObject<HTMLDivElement>) {
         container: mapContainerRef.current!,
         style: 'mapbox://styles/mapbox/satellite-v9',
         center: [120.825223033, 14.642099128],
-        zoom: 2,
+        zoom: 12,
         projection: {
             name: 'globe',
         },

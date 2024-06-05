@@ -1,6 +1,6 @@
 import { FeatureCollection, GeoJsonProperties, Point, Polygon } from 'geojson'
 import mapboxgl from 'mapbox-gl'
-import { IRegionData } from '../components/organisms/MapBoxMap/types'
+import { AoiId, IRegionData } from '../components/organisms/MapBoxMap/types'
 import { time } from 'console'
 
 function capitalizeFirstLetterOfEachWord(input: string): string {
@@ -43,6 +43,7 @@ export function addAoiCentersLayer(
     map: mapboxgl.Map,
     regions: FeatureCollection<Point, GeoJsonProperties>,
     stateSetter: (regionData: IRegionData) => void,
+    setCurrentAoiId: (aoiId: AoiId) => void,
 ): void {
     map.addSource('aoi-centers', {
         type: 'geojson',
@@ -62,6 +63,7 @@ export function addAoiCentersLayer(
     })
     addRegionPopup(map)
     map.on('click', 'aoi-centers', (e) => {
+        console.log('aoi-centers', e)
         const regionId = e.features![0].properties!.id
         const regionName = e.features![0].properties!.name
         const regionSize = e.features![0].properties!.area_km2
@@ -73,5 +75,6 @@ export function addAoiCentersLayer(
             areaSize: regionSize,
             polygon: regionPolygon,
         })
+        setCurrentAoiId(regionId)
     })
 }

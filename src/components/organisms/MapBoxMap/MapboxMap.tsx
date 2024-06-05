@@ -19,22 +19,26 @@ const MapboxMap: React.FC = () => {
     const mapContainerRef = useRef<HTMLDivElement>(null)
     const [map, setMap] = useState<mapboxgl.Map | null>(null)
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-    const [selectedTimestamps, setSelectedTimestamps] = useState<number[]>([])
     const [timestampToFetch, setTimestampToFetch] = useState<null | number>(null)
 
+    const [currentAoiId, setCurrentAoiId] = useState<AoiId>(null)
     const [currentAoiData, setCurrentAoiData] = useState<null | IRegionData>(null)
     const [mapLoaded, setMapLoaded] = useState(false)
 
-    // const {
-    //     isLoading: predictionQueryisLoading,
-    //     isSuccess: predictionQueryIsSuccess,
-    //     data: predictionQueryData,
-    // } = useQuery({
-    //     queryKey: ['prediction', timestampToFetch, currentAoiData!.id],
-    //     queryFn: async () => await fetchPredictions(timestampToFetch!, currentAoiData!.id),
-    //     enabled: Boolean(timestampToFetch && currentAoiData!.id),
-    //     refetchOnWindowFocus: false,
-    // })
+    const {
+        isLoading: predictionQueryisLoading,
+        isSuccess: predictionQueryIsSuccess,
+        data: predictionQueryData,
+    } = useQuery({
+        queryKey: timestampToFetch && currentAoiData && currentAoiData.id ? ['prediction', timestampToFetch, currentAoiData.id] : ['no-query'],
+        queryFn: async () => {
+            if (timestampToFetch && currentAoiData && currentAoiData.id) {
+                return await fetchPredictions(timestampToFetch, currentAoiData.id)
+            }
+            return null
+        },
+        enabled: Boolean(timestampToFetch && currentAoiData && currentAoiData.id),
+    })
 
     const {
         isLoading: timestampQueryisLoading,
@@ -56,7 +60,6 @@ const MapboxMap: React.FC = () => {
     } = useQuery({
         initialData: null,
         queryKey: ['aoi'],
-        // queryFn: fetchRegions,
         queryFn: async () => await fetchAoiCenters(),
         refetchOnWindowFocus: false,
     })
@@ -65,30 +68,34 @@ const MapboxMap: React.FC = () => {
         setIsSidebarOpen(!isSidebarOpen)
     }
     function handleDaySelect(days: number[]) {
+        console.log('handleDaySelect', days)
+        //fetches last added day
+        setTimestampToFetch(days[days.length - 1])
         return
     }
 
-    // useEffect(() => {
-    //     if (predictionQueryIsSuccess && map) {
-    //         addPredictionLayer(map, timestampToFetch!, currentAoiData!.id, predictionQueryData!)
-    //     }
-    // }, [predictionQueryIsSuccess, map])
-
     useEffect(() => {
-        console.log('aoiQueryData', aoiQueryData, map, mapLoaded)
-        if (aoiQueryIsSuccess && mapLoaded && map && mapLoaded) {
-            addAoiCentersLayer(map, aoiQueryData!, setCurrentAoiData)
+        console.log('predictionQueryData', predictionQueryData, predictionQueryIsSuccess)
+        if (predictionQueryIsSuccess && map) {
+            console.log('predictionQueryData add LAyer')
+            addPredictionLayer(map, timestampToFetch!, currentAoiData!.id, predictionQueryData!)
         }
-    }, [aoiQueryData, aoiQueryIsSuccess, map, mapLoaded])
+    }, [predictionQueryIsSuccess, map, predictionQueryData])
 
     useEffect(() => {
-        if (timestampQueryIsSuccess && map && currentAoiData) {
+        console.log('aoiQueryData', aoiQueryData, map, mapLoaded, aoiQueryIsSuccess)
+        if (aoiQueryIsSuccess && map && mapLoaded) {
+            addAoiCentersLayer(map, aoiQueryData!, setCurrentAoiData, setCurrentAoiId)
+        }
+    }, [aoiQueryIsSuccess, aoiQueryData])
+
+    useEffect(() => {
+        if (timestampQueryIsSuccess && currentAoiId && currentAoiData) {
             setCurrentAoiData({ ...currentAoiData, timestamps: timestampQueryData })
-            // const jobs = regionDatetimes.map((regionDatetimes) => regionDatetimes.timestamp)
-
-            // addPredictionLayer(map, jobs[0], currentAoiData!.id)
+            setTimestampToFetch(timestampQueryData[0])
+            setIsSidebarOpen(true)
         }
-    }, [timestampQueryIsSuccess])
+    }, [timestampQueryIsSuccess, currentAoiId, timestampQueryData])
 
     useEffect(() => {
         // const map = getGlobeMap(mapContainerRef)
@@ -104,7 +111,7 @@ const MapboxMap: React.FC = () => {
 
     return (
         <div>
-            {/* <TopBanner logo={Logo} isOpen={isSidebarOpen} regionProps={currentAoiData} handleSelectDays={handleDaySelect} map={map!}></TopBanner> */}
+            <TopBanner logo={Logo} isOpen={isSidebarOpen} regionProps={currentAoiData} handleSelectDays={handleDaySelect} map={map!}></TopBanner>
             <div ref={mapContainerRef} className="map-container h-screen"></div>
         </div>
     )
