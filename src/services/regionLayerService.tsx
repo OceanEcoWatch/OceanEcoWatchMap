@@ -61,8 +61,10 @@ export function addAoiCentersLayer(
         source: 'aoi-centers',
         filter: ['has', 'point_count'],
         paint: {
-            'circle-color': ['step', ['get', 'point_count'], '#51bbd6', 100, '#f1f075', 750, '#f28cb1'],
-            'circle-radius': ['step', ['get', 'point_count'], 20, 100, 30, 750, 40],
+            'circle-color': '#ff0000',
+            'circle-radius': 9,
+            'circle-stroke-width': 6,
+            'circle-stroke-color': '#660000',
         },
     })
 
@@ -84,10 +86,10 @@ export function addAoiCentersLayer(
         source: 'aoi-centers',
         filter: ['!', ['has', 'point_count']],
         paint: {
-            'circle-color': '#11b4da',
-            'circle-radius': 4,
-            'circle-stroke-width': 1,
-            'circle-stroke-color': '#fff',
+            'circle-color': '#ff0000',
+            'circle-radius': 6,
+            'circle-stroke-width': 3,
+            'circle-stroke-color': '#660000',
         },
     })
 
