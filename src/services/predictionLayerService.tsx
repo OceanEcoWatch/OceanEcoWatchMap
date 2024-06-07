@@ -116,3 +116,20 @@ export function getBoundingBox(polygon: Polygon): [number, number, number, numbe
 
     return [minX, minY, maxX, maxY]
 }
+
+export function removeAllPredictions(map: mapboxgl.Map) {
+    const sources = map.getStyle().sources
+    Object.keys(sources).forEach((sourceId) => {
+        if (sourceId.startsWith('prediction')) {
+            map.removeSource(sourceId)
+        }
+    })
+
+    const layers = map.getStyle().layers
+    layers.forEach((layer) => {
+        if (layer.id.startsWith('prediction')) {
+            console.log('removing layer', layer.id)
+            map.removeLayer(layer.id)
+        }
+    })
+}
