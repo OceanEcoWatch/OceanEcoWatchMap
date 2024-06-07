@@ -1,7 +1,6 @@
 import { FeatureCollection, GeoJsonProperties, Point, Polygon } from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import { AoiId, IRegionData } from '../components/organisms/MapBoxMap/types'
-import { time } from 'console'
 
 function capitalizeFirstLetterOfEachWord(input: string): string {
     return input
@@ -51,10 +50,6 @@ export function addAoiCentersLayer(
         cluster: true,
         clusterMaxZoom: 14, // Max zoom to cluster points on
         clusterRadius: 100,
-        clusterProperties: {
-            name: ['get', 'name'],
-            area_km2: ['get', 'area_km2'],
-        },
     })
 
     map.addLayer({
