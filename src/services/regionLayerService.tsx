@@ -1,6 +1,7 @@
 import { FeatureCollection, GeoJsonProperties, Point, Polygon } from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import { AoiId, IRegionData } from '../components/organisms/MapBoxMap/types'
+import { addAoiBboxLayer } from './aoiBboxLayerService'
 
 function capitalizeFirstLetterOfEachWord(input: string): string {
     return input
@@ -44,11 +45,13 @@ export function addAoiCentersLayer(
     stateSetter: (regionData: IRegionData) => void,
     setCurrentAoiId: (aoiId: AoiId) => void,
 ): void {
+    console.log('Adding aoi centers layer', regions)
+
     map.addSource('aoi-centers', {
         type: 'geojson',
         data: regions,
         cluster: true,
-        clusterMaxZoom: 14, // Max zoom to cluster points on
+        clusterMaxZoom: 14,
         clusterRadius: 100,
     })
 
@@ -90,12 +93,20 @@ export function addAoiCentersLayer(
 
     addRegionPopup(map)
 
-    map.on('click', 'unclustered-point', (e) => {
-        console.log('aoi-centers', e)
-        const regionId = e.features![0].properties!.id
-        const regionName = e.features![0].properties!.name
-        const regionSize = e.features![0].properties!.area_km2
-        const regionPolygon: Polygon = JSON.parse(e.features![0].properties!.polygon)
+    map.on('click', 'unclustered-point', async (e) => {
+        // Check if the properties object exists
+        if (!e.features || !e.features[0]?.properties) {
+            console.error('No properties found')
+            return
+        }
+
+        const regionId = e.features[0].properties!.id
+        const regionName = e.features[0].properties.name
+        const regionSize = e.features[0].properties.area_km2
+        const regionPolygon: Polygon = JSON.parse(e.features[0].properties.polygon)
+
+        hideAoiCenters(map)
+        addAoiBboxLayer(map, regionPolygon)
         stateSetter({
             id: regionId,
             timestamps: [],
@@ -122,4 +133,16 @@ export function addAoiCentersLayer(
             })
         })
     })
+}
+
+export function hideAoiCenters(map: mapboxgl.Map) {
+    map.setLayoutProperty('clusters', 'visibility', 'none')
+    map.setLayoutProperty('cluster-count', 'visibility', 'none')
+    map.setLayoutProperty('unclustered-point', 'visibility', 'none')
+}
+
+export function showAoiCenters(map: mapboxgl.Map) {
+    map.setLayoutProperty('clusters', 'visibility', 'visible')
+    map.setLayoutProperty('cluster-count', 'visibility', 'visible')
+    map.setLayoutProperty('unclustered-point', 'visibility', 'visible')
 }
