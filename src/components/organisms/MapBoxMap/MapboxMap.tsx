@@ -1,24 +1,24 @@
-import { Polygon } from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import React, { useEffect, useRef, useState } from 'react'
 import Logo from '../../../assets/logo.png'
 
 import { fetchRegionDatetimes, fetchAoiCenters, fetchPredictions } from '../../../services/mapService'
-import { addNavigationControls, getGlobeMap, initMap, loadStyles } from '../../../services/mapboxService'
-import { addPredictionLayer } from '../../../services/predictionLayerService'
+import { initMap } from '../../../services/mapboxService'
+import { addPredictionLayer, removeAllPredictions, removePredictionById } from '../../../services/predictionLayerService'
 import { addAoiCentersLayer } from '../../../services/regionLayerService'
 import TopBanner from '../OEWHeader/OEWHeader'
 import './MapboxMap.css'
 import { IRegionData, AoiId } from './types'
 import { useQuery } from '@tanstack/react-query'
+import { ActionMeta } from 'react-select'
+import { IDayOption } from '../../../interfaces/IDayOption'
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY!
 
 const MapboxMap: React.FC = () => {
     const mapContainerRef = useRef<HTMLDivElement>(null)
     const [map, setMap] = useState<mapboxgl.Map | null>(null)
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [timestampToFetch, setTimestampToFetch] = useState<null | number>(null)
 
     const [currentAoiId, setCurrentAoiId] = useState<AoiId>(null)
@@ -64,26 +64,41 @@ const MapboxMap: React.FC = () => {
         refetchOnWindowFocus: false,
     })
 
-    const openSidebar = () => {
-        setIsSidebarOpen(!isSidebarOpen)
+    // const openSidebar = () => {
+    //     setIsSidebarOpen(!isSidebarOpen)
+    // }
+
+    function handleDeselectAoi() {
+        setCurrentAoiId(null)
+        setCurrentAoiData(null)
+        setTimestampToFetch(null)
     }
-    function handleDaySelect(days: number[]) {
-        console.log('handleDaySelect', days)
-        //fetches last added day
-        setTimestampToFetch(days[days.length - 1])
+
+    function handleDaySelect(event: ActionMeta<IDayOption>) {
+        if (event.action === 'select-option') {
+            if (event.option?.value) {
+                setTimestampToFetch(event.option.value)
+            }
+        } else if (event.action === 'remove-value') {
+            if (event.removedValue?.value && currentAoiId) {
+                removePredictionById(map!, event.removedValue.value, currentAoiId)
+            }
+        } else if (event.action === 'clear') {
+            if (map) {
+                removeAllPredictions(map)
+            }
+        }
+
         return
     }
 
     useEffect(() => {
-        console.log('predictionQueryData', predictionQueryData, predictionQueryIsSuccess)
         if (predictionQueryIsSuccess && map) {
-            console.log('predictionQueryData add LAyer')
             addPredictionLayer(map, timestampToFetch!, currentAoiData!.id, predictionQueryData!)
         }
     }, [predictionQueryIsSuccess, map, predictionQueryData])
 
     useEffect(() => {
-        console.log('aoiQueryData', aoiQueryData, map, mapLoaded, aoiQueryIsSuccess)
         if (aoiQueryIsSuccess && map && mapLoaded) {
             addAoiCentersLayer(map, aoiQueryData!, setCurrentAoiData, setCurrentAoiId)
         }
@@ -93,7 +108,7 @@ const MapboxMap: React.FC = () => {
         if (timestampQueryIsSuccess && currentAoiId && currentAoiData) {
             setCurrentAoiData({ ...currentAoiData, timestamps: timestampQueryData })
             setTimestampToFetch(timestampQueryData[0])
-            setIsSidebarOpen(true)
+            //setIsSidebarOpen(true)
         }
     }, [timestampQueryIsSuccess, currentAoiId, timestampQueryData])
 
@@ -111,7 +126,71 @@ const MapboxMap: React.FC = () => {
 
     return (
         <div>
-            <TopBanner logo={Logo} isOpen={isSidebarOpen} regionProps={currentAoiData} handleSelectDays={handleDaySelect} map={map!}></TopBanner>
+            {aoiQueryIsLoading && (
+                <div
+                    style={{
+                        zIndex: 1000,
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)', // Optional: This will add a semi-transparent black background
+                    }}
+                >
+                    <h1 style={{ color: 'white' }}>Loading AOIs</h1>
+                </div>
+            )}
+
+            {timestampQueryisLoading && (
+                <div
+                    style={{
+                        zIndex: 1000,
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    }}
+                >
+                    <h1 style={{ color: 'white' }}>Fetching Timestamps</h1>
+                </div>
+            )}
+
+            {predictionQueryisLoading && (
+                <div
+                    style={{
+                        zIndex: 1000,
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    }}
+                >
+                    <h1 style={{ color: 'white' }}>Fetching Prediction of a Day...</h1>
+                </div>
+            )}
+
+            <TopBanner
+                logo={Logo}
+                isOpen={!!currentAoiId}
+                regionProps={currentAoiData}
+                handleSelectedDaysChange={handleDaySelect}
+                handleDeselectAoi={handleDeselectAoi}
+                map={map!}
+            ></TopBanner>
             <div ref={mapContainerRef} className="map-container h-screen"></div>
         </div>
     )
