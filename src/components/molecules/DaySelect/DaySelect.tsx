@@ -1,10 +1,10 @@
 import React from 'react'
-import Select from 'react-select'
+import Select, { ActionMeta } from 'react-select'
 import { IDayOption } from '../../../interfaces/IDayOption'
 
 interface DaySelectProps {
     days: IDayOption[]
-    handleSelectedDaysChange: (selectedOptions: any) => void
+    handleSelectedDaysChange: (event: ActionMeta<IDayOption>) => void
 }
 
 const DaySelect: React.FC<DaySelectProps> = ({ days, handleSelectedDaysChange }) => {
@@ -15,7 +15,7 @@ const DaySelect: React.FC<DaySelectProps> = ({ days, handleSelectedDaysChange })
             name="days"
             options={days}
             className="basic-multi-select"
-            onChange={handleSelectedDaysChange}
+            onChange={(_, action) => handleSelectedDaysChange(action)}
             classNamePrefix="select"
             theme={(theme) => ({
                 ...theme,
