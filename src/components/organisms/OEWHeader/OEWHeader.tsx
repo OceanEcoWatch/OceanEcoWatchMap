@@ -8,16 +8,18 @@ import { ProbabilityLegend } from '../../atoms/ProbabilityLegend/ProbabilityLege
 import DaySelect from '../../molecules/DaySelect/DaySelect'
 import './OEWHeader.css'
 import { IRegionData } from '../MapBoxMap/types'
+import { ActionMeta } from 'react-select'
 
 interface OEWHeaderProps {
     logo: string
     isOpen: boolean
     regionProps: null | IRegionData
-    handleSelectDays: (days: number[]) => void
+    handleSelectedDaysChange: (event: ActionMeta<IDayOption>) => void
+    handleDeselectAoi: () => void
     map: mapboxgl.Map
 }
 
-const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handleSelectDays, map }) => {
+const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handleSelectedDaysChange, map, handleDeselectAoi }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(isOpen)
     const [infoIsOpen, setInfo] = useState(false)
 
@@ -31,17 +33,8 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
 
     const days: IDayOption[] = []
 
-    const handleSelectedDaysChange = (selectedOptions: any) => {
-        handleSelectDays(selectedOptions.map((dayOptionn: any) => dayOptionn.value))
-    }
-    console.log('region props', regionProps)
-
     if (regionProps) {
-        console.log(regionProps)
-    }
-
-    if (regionProps) {
-        regionProps.timestamps.forEach((timestamp) => {
+        regionProps.timestamps.forEach((timestamp, index) => {
             const readableTimestamp = moment.unix(timestamp).format('DD.MM.YYYY HH:mm')
             days.push({ value: timestamp, label: readableTimestamp })
         })
@@ -67,7 +60,7 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
                         {regionProps !== undefined && (
                             <div className="container flex flex-col justify-between h-full">
                                 <div>
-                                    <BackButton map={map}></BackButton>
+                                    <BackButton map={map} handleDeselectAoi={handleDeselectAoi}></BackButton>
                                     <AreaDetails
                                         areaSize={regionProps!.areaSize}
                                         firstAnalysis={regionProps!.timestamps[0]}
@@ -76,7 +69,7 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
                                     ></AreaDetails>
                                     <div className="my-12">
                                         <div className="font-bold text-sm my-5 text-left">Select Days</div>
-                                        <DaySelect days={days} handleSelectedDaysChange={handleSelectedDaysChange} />
+                                        {days.length > 0 && <DaySelect days={days} handleSelectedDaysChange={handleSelectedDaysChange} />}
                                     </div>
                                 </div>
                                 <ProbabilityLegend></ProbabilityLegend>
@@ -108,8 +101,5 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
         </div>
     )
 }
-// const OEWHeader: React.FC = () => {
-//     return <div>{/* Your component code here */}</div>
-// }
 
 export default OEWHeader
