@@ -2,7 +2,6 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import React, { useEffect, useRef, useState } from 'react'
 import Logo from '../../../assets/logo.png'
-
 import { fetchRegionDatetimes, fetchAoiCenters, fetchPredictions } from '../../../services/mapService'
 import { initMap } from '../../../services/mapboxService'
 import { addPredictionLayer, removeAllPredictions, removePredictionById } from '../../../services/predictionLayerService'
@@ -92,6 +91,7 @@ const MapboxMap: React.FC = () => {
         return
     }
 
+
     useEffect(() => {
         if (predictionQueryIsSuccess && map) {
             addPredictionLayer(map, timestampToFetch!, currentAoiData!.id, predictionQueryData!)
@@ -113,14 +113,8 @@ const MapboxMap: React.FC = () => {
     }, [timestampQueryIsSuccess, currentAoiId, timestampQueryData])
 
     useEffect(() => {
-        // const map = getGlobeMap(mapContainerRef)
-        // setMap(map)
-        // loadStyles(map)
-        // addNavigationControls(map)
-
         const map = initMap(mapContainerRef, setMapLoaded)
         setMap(map)
-
         return () => map.remove()
     }, [])
 
