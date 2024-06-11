@@ -174,36 +174,3 @@ function addClusteredRegionPopup(map: mapboxgl.Map, content: string) {
         popup.remove()
     })
 }
-
-export function addClusteredRegions(map: mapboxgl.Map) {
-    const manillaBayPoint: Feature = {
-        type: 'Feature',
-        geometry: {
-            type: 'Point',
-            coordinates: [120.9749, 14.5547],
-        },
-        properties: {
-            title: 'Manila Bay',
-            description: 'Manila, Philippines',
-        },
-    }
-
-    map.addSource('clusteredRegions', {
-        type: 'geojson',
-        data: manillaBayPoint,
-    })
-
-    map.addLayer({
-        id: 'clusteredRegions',
-        type: 'circle',
-        source: 'clusteredRegions',
-        paint: {
-            'circle-color': '#ff0000',
-            'circle-radius': 9,
-            'circle-stroke-width': 6,
-            'circle-stroke-color': '#660000',
-        },
-    })
-    const popupContent: string = `<strong>Manilla Bay</strong><br>`
-    addClusteredRegionPopup(map, popupContent)
-}
