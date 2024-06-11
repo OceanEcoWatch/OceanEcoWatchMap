@@ -7,10 +7,10 @@ export interface IImageData {
 }
 
 export interface IAPIRegionDatetimes {
-    [timestamp: string]: ImageData[]
+    [timestamp: string]: IImageData[]
 }
 
 export interface IRegionDatetime {
     timestamp: number
-    imageData: ImageData[]
+    imageData: IImageData[]
 }

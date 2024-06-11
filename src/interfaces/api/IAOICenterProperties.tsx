@@ -5,4 +5,5 @@ export interface IAOICenterProperties {
     name: string
     area_km2: number
     polygon: Polygon
+    bBox: [number, number, number, number]
 }

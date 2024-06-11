@@ -1,5 +1,7 @@
-import { Feature, FeatureCollection, GeoJsonProperties, Point } from 'geojson'
+import { FeatureCollection, GeoJsonProperties, Point, Polygon } from 'geojson'
 import mapboxgl from 'mapbox-gl'
+import { AoiId, IRegionData } from '../components/organisms/MapBoxMap/types'
+import { addAoiBboxLayer } from './aoiBboxLayerService'
 
 function capitalizeFirstLetterOfEachWord(input: string): string {
     return input
@@ -37,16 +39,27 @@ function addRegionPopup(map: mapboxgl.Map) {
     })
 }
 
-export function addRegionLayer(map: mapboxgl.Map, regions: FeatureCollection<Point, GeoJsonProperties>) {
-    map.addSource('regions', {
+export function addAoiCentersLayer(
+    map: mapboxgl.Map,
+    regions: FeatureCollection<Point, GeoJsonProperties>,
+    stateSetter: (regionData: IRegionData) => void,
+    setCurrentAoiId: (aoiId: AoiId) => void,
+): void {
+    console.log('Adding aoi centers layer', regions)
+
+    map.addSource('aoi-centers', {
         type: 'geojson',
         data: regions,
+        cluster: true,
+        clusterMaxZoom: 14,
+        clusterRadius: 100,
     })
 
     map.addLayer({
-        id: 'regions',
+        id: 'clusters',
         type: 'circle',
-        source: 'regions',
+        source: 'aoi-centers',
+        filter: ['has', 'point_count'],
         paint: {
             'circle-color': '#ff0000',
             'circle-radius': 9,
@@ -54,7 +67,86 @@ export function addRegionLayer(map: mapboxgl.Map, regions: FeatureCollection<Poi
             'circle-stroke-color': '#660000',
         },
     })
+
+    map.addLayer({
+        id: 'cluster-count',
+        type: 'symbol',
+        source: 'aoi-centers',
+        filter: ['has', 'point_count'],
+        layout: {
+            'text-field': ['get', 'point_count_abbreviated'],
+            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+            'text-size': 12,
+        },
+    })
+
+    map.addLayer({
+        id: 'unclustered-point',
+        type: 'circle',
+        source: 'aoi-centers',
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+            'circle-color': '#ff0000',
+            'circle-radius': 6,
+            'circle-stroke-width': 3,
+            'circle-stroke-color': '#660000',
+        },
+    })
+
     addRegionPopup(map)
+
+    map.on('click', 'unclustered-point', async (e) => {
+        // Check if the properties object exists
+        if (!e.features || !e.features[0]?.properties) {
+            console.error('No properties found')
+            return
+        }
+
+        const regionId = e.features[0].properties!.id
+        const regionName = e.features[0].properties.name
+        const regionSize = e.features[0].properties.area_km2
+        const regionPolygon: Polygon = JSON.parse(e.features[0].properties.polygon)
+
+        hideAoiCenters(map)
+        addAoiBboxLayer(map, regionPolygon)
+        stateSetter({
+            id: regionId,
+            timestamps: [],
+            name: regionName,
+            areaSize: regionSize,
+            polygon: regionPolygon,
+        })
+        setCurrentAoiId(regionId)
+    })
+
+    map.on('click', 'clusters', (e) => {
+        const features = map.queryRenderedFeatures(e.point, {
+            layers: ['clusters'],
+        })
+        const clusterId = features[0].properties!.cluster_id
+        //@ts-ignore
+        map.getSource('aoi-centers')!.getClusterExpansionZoom(clusterId, (err, zoom) => {
+            if (err) return
+
+            map.easeTo({
+                //@ts-ignore
+                center: features[0].geometry.coordinates,
+                zoom: zoom,
+            })
+        })
+    })
+}
+
+export function hideAoiCenters(map: mapboxgl.Map) {
+    map.setLayoutProperty('clusters', 'visibility', 'none')
+    map.setLayoutProperty('cluster-count', 'visibility', 'none')
+    map.setLayoutProperty('unclustered-point', 'visibility', 'none')
+}
+
+export function showAoiCenters(map: mapboxgl.Map) {
+    map.setLayoutProperty('clusters', 'visibility', 'visible')
+    map.setLayoutProperty('cluster-count', 'visibility', 'visible')
+    map.setLayoutProperty('unclustered-point', 'visibility', 'visible')
 }
 
 function addClusteredRegionPopup(map: mapboxgl.Map, content: string) {

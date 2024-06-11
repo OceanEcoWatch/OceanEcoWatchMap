@@ -1,11 +1,16 @@
 import './App.css'
 import MapboxMap from './components/organisms/MapBoxMap/MapboxMap'
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 
-function App() {
+const queryClient = new QueryClient()
+
+const App = () => {
     return (
-        <div className="App">
-            <MapboxMap />
-        </div>
+        <QueryClientProvider client={queryClient}>
+            <div className="App">
+                <MapboxMap />
+            </div>
+        </QueryClientProvider>
     )
 }
 
