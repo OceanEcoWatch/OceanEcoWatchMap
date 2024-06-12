@@ -1,21 +1,19 @@
 import React from 'react'
 import Toggle from 'react-toggle'
 import './MapProjectionButton.css'
+import { toggleMapProjection } from '../../../services/mapboxService'
 
-export type MapProjection = 'globe' | 'flat'
-
-type ToggleMapProjectionProps = {
-    currentProjection: MapProjection
-    handleOnChange: () => void
+interface MapProjectionButtonProps {
+    map: mapboxgl.Map
 }
 
-const ToggleMapProjectionButton: React.FC<ToggleMapProjectionProps> = ({ handleOnChange, currentProjection }) => {
+const MapProjectionButton: React.FC<MapProjectionButtonProps> = ({ map }) => {
     return (
         <label className="flex items-center space-x-2">
-            <Toggle defaultChecked={false} icons={false} onChange={handleOnChange} />
+            <Toggle defaultChecked={false} icons={false} onChange={() => toggleMapProjection(map)} />
             <span>Globe</span>
         </label>
     )
 }
 
-export default ToggleMapProjectionButton
+export default MapProjectionButton
