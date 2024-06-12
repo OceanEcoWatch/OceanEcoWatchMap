@@ -8,6 +8,8 @@ import { BackButton } from '../../atoms/BackButton/BackButton'
 import { ProbabilityLegend } from '../../atoms/ProbabilityLegend/ProbabilityLegend'
 import DaySelect from '../../molecules/DaySelect/DaySelect'
 import './OEWHeader.css'
+import ToggleMapProjectionButton, { MapProjection } from '../../atoms/ToggleMapProjectionButton/ToggleMapProjection'
+import { toggleMapProjection } from '../../../services/mapboxService'
 
 interface OEWHeaderProps {
     logo: string
@@ -42,12 +44,16 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
         })
     }
 
+    const [currentProjection, setCurrentProjection] = useState<MapProjection>('globe')
+    function handleToggleMapProjection() {
+        if (map) {
+            toggleMapProjection(map, setCurrentProjection)
+        }
+    }
+
     return (
         <div id="header">
-            <button
-                onClick={toggleSidebar}
-                className="absolute top-2 left-2 p-2 text-xl text-white bg-gray-700 hover:bg-gray-900 focus:outline-none z-20 rounded-md"
-            >
+            <button onClick={toggleSidebar} className="p-2 text-xl text-white bg-gray-700 hover:bg-gray-900 focus:outline-none z-20 rounded-md flex ">
                 &#9776;
             </button>
             <div
@@ -81,9 +87,17 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
             <div className="text-center py-2 pl-16 flex items-center justify-center">
                 <img src={logo} alt="Logo" className="h-12 inline-block mr-4" />
                 <span className="text-xl font-semibold">Ocean Eco Watch</span>
+            </div>
+
+            <div className="flex  space-x-8">
+                <ToggleMapProjectionButton
+                    handleOnChange={handleToggleMapProjection}
+                    currentProjection={currentProjection}
+                ></ToggleMapProjectionButton>
+
                 <button
                     onClick={toggleInfo}
-                    className="absolute top-2 right-2 p-3 w-12 h-12 text-xl text-white bg-gray-700 hover:bg-gray-900 focus:outline-none z-20 rounded-full"
+                    className="p-3 w-12 h-12 text-xl text-white bg-gray-700 hover:bg-gray-900 focus:outline-none z-20 rounded-full"
                 >
                     i
                 </button>

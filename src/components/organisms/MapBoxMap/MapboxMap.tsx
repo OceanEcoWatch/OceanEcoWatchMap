@@ -1,5 +1,5 @@
 import { Polygon } from 'geojson'
-import mapboxgl, { Projection } from 'mapbox-gl'
+import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import React, { useEffect, useRef, useState } from 'react'
 import Logo from '../../../assets/logo.png'
@@ -10,7 +10,6 @@ import { addPolygonLayer, addPredictionLayer, getBoundingBox } from '../../../se
 import { addRegionLayer } from '../../../services/regionLayerService'
 import TopBanner from '../OEWHeader/OEWHeader'
 import './MapboxMap.css'
-import ToggleMapProjectionButton, { MapProjection } from '../../atoms/ToggleMapProjectionButton/ToggleMapProjection'
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY!
 
@@ -92,18 +91,10 @@ const MapboxMap: React.FC = () => {
         return () => map.remove()
     }, [])
 
-    const [currentProjection, setCurrentProjection] = useState<MapProjection>('globe')
-    function handleToggleMapProjection() {
-        if (map) {
-            toggleMapProjection(map, setCurrentProjection)
-        }
-    }
-
     return (
         <div>
             <TopBanner logo={Logo} isOpen={isSidebarOpen} regionProps={regionProps} handleSelectDays={handleDaySelect} map={map!}></TopBanner>
             <div ref={mapContainerRef} className="map-container h-screen"></div>
-            <ToggleMapProjectionButton onClick={handleToggleMapProjection} currentProjection={currentProjection}></ToggleMapProjectionButton>
         </div>
     )
 }

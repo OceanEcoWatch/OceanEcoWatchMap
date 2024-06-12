@@ -1,5 +1,5 @@
 import mapboxgl from 'mapbox-gl'
-import { MapProjection } from '../components/organisms/MapBoxMap/MapboxMap'
+import { MapProjection } from '../components/atoms/ToggleMapProjectionButton/ToggleMapProjection'
 
 export function getGlobeMap(mapContainerRef: React.RefObject<HTMLDivElement>) {
     return new mapboxgl.Map({
@@ -8,7 +8,7 @@ export function getGlobeMap(mapContainerRef: React.RefObject<HTMLDivElement>) {
         center: [120.825223033, 14.642099128],
         zoom: 2,
         projection: {
-            name: 'globe',
+            name: 'mercator',
         },
     })
 }
