@@ -2,6 +2,7 @@ import { FeatureCollection, Point } from 'geojson'
 import { IAOICenterProperties } from '../interfaces/api/IAOICenterProperties'
 import { IPredProperties } from '../interfaces/api/IPredProperties'
 import { IAPIRegionDatetimes, IRegionDatetime } from '../interfaces/api/IRegionDatetime'
+import { AoiId } from '../components/organisms/MapBoxMap/types'
 
 var baseUrl = process.env.REACT_APP_API_URL
 
@@ -9,7 +10,7 @@ if (baseUrl === undefined) {
     baseUrl = 'http://localhost:8000/'
 }
 
-export async function fetchRegions(): Promise<FeatureCollection<Point, IAOICenterProperties>> {
+export async function fetchAoiCenters(): Promise<FeatureCollection<Point, IAOICenterProperties>> {
     try {
         const response = await fetch(`${baseUrl}aoi-centers?bbox=-180,-90,180,90`)
         if (!response.ok) {
@@ -27,22 +28,28 @@ export async function fetchRegions(): Promise<FeatureCollection<Point, IAOICente
     // todo use tanstack query
 }
 
-function transformRegionDatetimes(request: IAPIRegionDatetimes): IRegionDatetime[] {
-    return Object.entries(request).map(([timestamp, imageData]) => ({
-        timestamp: parseInt(timestamp, 10),
-        imageData: imageData,
-    }))
+function transformRegionDatetimes(request: IAPIRegionDatetimes): number[] {
+    return Object.keys(request).map((timestamp) => parseInt(timestamp, 10))
+    // TODO: fix this (include the imageData)
+    // return Object.entries(request).map(([timestamp, imageData]) => ({
+    //     timestamp: parseInt(timestamp, 10),
+    //     // imageData: imageData,
+    // }))
 }
 
-export async function fetchRegionDatetimes(regionId: number): Promise<IRegionDatetime[]> {
+export async function fetchRegionDatetimes(aoiId: AoiId): Promise<number[]> {
+    if (!aoiId) {
+        return []
+    }
     try {
-        const response = await fetch(`${baseUrl}images-by-day?aoiId=${regionId}`)
+        const response = await fetch(`${baseUrl}images-by-day?aoiId=${aoiId}`)
         if (!response.ok) {
             throw new Error('Network response was not ok ' + response.status)
         }
 
         const apiRegionDatetimes: IAPIRegionDatetimes = await response.json()
-        const regionDatetimes: IRegionDatetime[] = transformRegionDatetimes(apiRegionDatetimes)
+
+        const regionDatetimes: number[] = transformRegionDatetimes(apiRegionDatetimes)
 
         return regionDatetimes
     } catch (error) {
@@ -52,13 +59,13 @@ export async function fetchRegionDatetimes(regionId: number): Promise<IRegionDat
     //   todo use tanstack query
 }
 
-export async function getJobPredictions(
+export async function fetchPredictions(
     datetime: number,
-    regionId: number,
-    accuracyLimit: number = 10,
+    aoiId: number,
+    accuracyLimit: number = 33,
 ): Promise<FeatureCollection<Point, IPredProperties>> {
     try {
-        const response = await fetch(`${baseUrl}predictions-by-day-and-aoi?day=${datetime}&aoi_id=${regionId}&accuracy_limit=${accuracyLimit}`)
+        const response = await fetch(`${baseUrl}predictions-by-day-and-aoi?day=${datetime}&aoi_id=${aoiId}&accuracy_limit=${accuracyLimit}`)
         if (!response.ok) {
             throw new Error('Network response was not ok ' + response.status)
         }

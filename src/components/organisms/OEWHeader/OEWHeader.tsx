@@ -2,22 +2,24 @@ import mapboxgl from 'mapbox-gl'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { IDayOption } from '../../../interfaces/IDayOption'
-import { IRegionProperties } from '../../../interfaces/IRegionProperties'
 import { AreaDetails } from '../../atoms/AreaDetails/AreaDetails'
 import { BackButton } from '../../atoms/BackButton/BackButton'
 import { ProbabilityLegend } from '../../atoms/ProbabilityLegend/ProbabilityLegend'
 import DaySelect from '../../molecules/DaySelect/DaySelect'
 import './OEWHeader.css'
+import { IRegionData } from '../MapBoxMap/types'
+import { ActionMeta } from 'react-select'
 
 interface OEWHeaderProps {
     logo: string
     isOpen: boolean
-    regionProps: undefined | IRegionProperties
-    handleSelectDays: (days: number[]) => void
+    regionProps: null | IRegionData
+    handleSelectedDaysChange: (event: ActionMeta<IDayOption>) => void
+    handleDeselectAoi: () => void
     map: mapboxgl.Map
 }
 
-const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handleSelectDays, map }) => {
+const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handleSelectedDaysChange, map, handleDeselectAoi }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(isOpen)
     const [infoIsOpen, setInfo] = useState(false)
 
@@ -31,12 +33,8 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
 
     const days: IDayOption[] = []
 
-    const handleSelectedDaysChange = (selectedOptions: any) => {
-        handleSelectDays(selectedOptions.map((dayOptionn: any) => dayOptionn.value))
-    }
-
     if (regionProps) {
-        regionProps.jobs.forEach((timestamp) => {
+        regionProps.timestamps.forEach((timestamp, index) => {
             const readableTimestamp = moment.unix(timestamp).format('DD.MM.YYYY HH:mm')
             days.push({ value: timestamp, label: readableTimestamp })
         })
@@ -50,33 +48,36 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
             >
                 &#9776;
             </button>
-            <div
-                className={`${
-                    isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                } transform top-0 left-0 w-64 text-white fixed h-full transition-transform duration-300 ease-in-out z-10`}
-            >
-                <div className="p-5 text-base font-bold">{regionProps?.name}</div>
-                <div id="sidebar" className="flex flex-col items-center space-y-4">
-                    {regionProps !== undefined && (
-                        <div className="container flex flex-col justify-between h-full">
-                            <div>
-                                <BackButton map={map}></BackButton>
-                                <AreaDetails
-                                    areaSize={regionProps.areaSize}
-                                    firstAnalysis={regionProps.jobs[0]}
-                                    lastAnalysis={regionProps.jobs[regionProps.jobs.length - 1]}
-                                    timestampsCount={regionProps.jobs.length}
-                                ></AreaDetails>
-                                <div className="my-12">
-                                    <div className="font-bold text-sm my-5 text-left">Select Days</div>
-                                    <DaySelect days={days} handleSelectedDaysChange={handleSelectedDaysChange} />
+
+            {regionProps && (
+                <div
+                    className={`${
+                        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                    } transform top-0 left-0 w-64 text-white fixed h-full transition-transform duration-300 ease-in-out z-10`}
+                >
+                    <div className="p-5 text-base font-bold">{regionProps?.name}</div>
+                    <div id="sidebar" className="flex flex-col items-center space-y-4">
+                        {regionProps !== undefined && (
+                            <div className="container flex flex-col justify-between h-full">
+                                <div>
+                                    <BackButton map={map} handleDeselectAoi={handleDeselectAoi}></BackButton>
+                                    <AreaDetails
+                                        areaSize={regionProps!.areaSize}
+                                        firstAnalysis={regionProps!.timestamps[0]}
+                                        lastAnalysis={regionProps!.timestamps[regionProps!.timestamps.length - 1]}
+                                        timestampsCount={regionProps!.timestamps.length}
+                                    ></AreaDetails>
+                                    <div className="my-12">
+                                        <div className="font-bold text-sm my-5 text-left">Select Days</div>
+                                        {days.length > 0 && <DaySelect days={days} handleSelectedDaysChange={handleSelectedDaysChange} />}
+                                    </div>
                                 </div>
+                                <ProbabilityLegend></ProbabilityLegend>
                             </div>
-                            <ProbabilityLegend></ProbabilityLegend>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
 
             <div className="text-center py-2 pl-16 flex items-center justify-center">
                 <img src={logo} alt="Logo" className="h-12 inline-block mr-4" />
