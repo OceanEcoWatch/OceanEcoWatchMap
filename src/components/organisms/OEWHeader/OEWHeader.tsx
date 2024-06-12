@@ -66,7 +66,7 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
                                 ></AreaDetails>
                                 <div className="my-12">
                                     <div className="font-bold text-sm my-5 text-left">Select Days</div>
-                                    <DaySelect days={days} handleSelectedDaysChange={handleSelectedDaysChange} />
+                                    {days.length > 0 && <DaySelect days={days} handleSelectedDaysChange={handleSelectedDaysChange} />}
                                 </div>
                             </div>
                             <ProbabilityLegend></ProbabilityLegend>
