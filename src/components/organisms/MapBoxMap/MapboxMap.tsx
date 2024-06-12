@@ -91,7 +91,6 @@ const MapboxMap: React.FC = () => {
         return
     }
 
-
     useEffect(() => {
         if (predictionQueryIsSuccess && map) {
             addPredictionLayer(map, timestampToFetch!, currentAoiData!.id, predictionQueryData!)
