@@ -9,6 +9,10 @@
     z-index: 100;
     box-shadow: 0px 10px 20px black;
     backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
 }
 
 #sidebar {
@@ -16,7 +20,6 @@
     box-shadow: 0px 20px 20px -10px black;
     margin-top: 5px;
     height: calc(100vh - 70px);
-    overflow-y: scroll;
     padding: 10px;
 }
 
@@ -46,13 +49,13 @@ p a:focus {
 }
 
 /* .basic-multi-select{
-  background-color: red;
+background-color: red;
 }
 
 .select__control{
-  background-color: red;
+background-color: red;
 }
 
 .select__multi-value{
-  background-color: blue;
+background-color: blue;
 } */
