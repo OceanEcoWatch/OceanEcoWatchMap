@@ -57,3 +57,12 @@ export function initMap(mapContainerRef: React.RefObject<HTMLDivElement>, setMap
 
     return map
 }
+
+export function toggleMapProjection(map: mapboxgl.Map) {
+    const currentProjection = map.getProjection()
+    if (currentProjection.name === 'globe') {
+        map.setProjection('mercator')
+    } else {
+        map.setProjection('globe')
+    }
+}
