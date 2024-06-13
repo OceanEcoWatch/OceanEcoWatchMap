@@ -118,7 +118,10 @@ export function addAoiCentersLayer(
         })
         setCurrentAoiId(regionId)
     })
-
+    const popup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+    })
     map.on('click', 'clusters', (e) => {
         const features = map.queryRenderedFeatures(e.point, {
             layers: ['clusters'],
@@ -134,6 +137,25 @@ export function addAoiCentersLayer(
                 zoom: zoom,
             })
         })
+    })
+
+    map.on('mouseenter', 'unclustered-point', (event) => {
+        map.getCanvas().style.cursor = 'pointer'
+
+        if (event.features![0].geometry.type === 'Point') {
+            const coordinates = event.features![0].geometry.coordinates.slice() ?? []
+            // const name = event.features![0].properties?.name
+            // const area = event.features![0].properties?.area_km2
+
+            while (Math.abs(event.lngLat.lng - coordinates[0]) > 180) {
+                coordinates[0] += event.lngLat.lng > coordinates[0] ? 360 : -360
+            }
+            popup.setLngLat([coordinates[0], coordinates[1]]).setHTML('<p>Manila Bay - Click to see predictions</p>').addTo(map)
+        }
+    })
+    map.on('mouseleave', 'clusteredRegions', () => {
+        map.getCanvas().style.cursor = ''
+        popup.remove()
     })
 }
 
