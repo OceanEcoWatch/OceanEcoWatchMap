@@ -36,7 +36,7 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
     const days: IDayOption[] = []
 
     if (regionProps) {
-        regionProps.timestamps.forEach((timestamp, index) => {
+        regionProps.timestamps.forEach((timestamp) => {
             const readableTimestamp = moment.unix(timestamp).format('DD.MM.YYYY HH:mm')
             days.push({ value: timestamp, label: readableTimestamp })
         })
@@ -53,7 +53,8 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
                 } transform top-0 left-0 w-64 text-white fixed h-full transition-transform duration-300 ease-in-out z-10`}
             >
                 <div className="p-5 text-base font-bold">{regionProps?.name}</div>
-                <div id="sidebar" className="flex flex-col items-center space-y-4">
+                <div id="sidebar" className="flex flex-col items-center justify-center h-full">
+                    {regionProps === null && <p>Click on one of the red dots to select a region first.</p>}
                     {regionProps && (
                         <div className="container flex flex-col justify-between h-full">
                             <div>
