@@ -33,12 +33,86 @@ export function addPredictionLayer(
         data: predictionQueryData,
     })
 
+    // map.addLayer({
+    //     id: `prediction-${datetime}-${aoiId}`,
+    //     type: 'circle',
+    //     source: `prediction-${datetime}-${aoiId}`,
+    //     paint: {
+    //         'circle-radius': 10,
+    //         'circle-color': [
+    //             'interpolate',
+    //             ['linear'],
+    //             ['get', 'pixelValue'],
+    //             10,
+    //             colorCoding[10],
+    //             20,
+    //             colorCoding[20],
+    //             30,
+    //             colorCoding[30],
+    //             40,
+    //             colorCoding[40],
+    //             50,
+    //             colorCoding[50],
+    //             60,
+    //             colorCoding[60],
+    //             70,
+    //             colorCoding[70],
+    //             80,
+    //             colorCoding[80],
+    //             90,
+    //             colorCoding[90],
+    //             100,
+    //             colorCoding[100],
+    //         ],
+    //     },
+    // })
+
     map.addLayer({
-        id: `prediction-${datetime}-${aoiId}`,
+        id: `prediction-${datetime}-${aoiId}-heatmap`,
+        type: 'heatmap',
+        source: `prediction-${datetime}-${aoiId}`,
+        maxzoom: 15,
+        paint: {
+            'heatmap-weight': ['interpolate', ['linear'], ['get', 'pixelValue'], 0, 0, 100, 1],
+            'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 15, 15, 15],
+            'heatmap-color': [
+                'interpolate',
+                ['linear'],
+                ['heatmap-density'],
+                0,
+                'rgba(255, 237, 160, 0)',
+                0.1,
+                colorCoding[10],
+                0.2,
+                colorCoding[20],
+                0.3,
+                colorCoding[30],
+                0.4,
+                colorCoding[40],
+                0.5,
+                colorCoding[50],
+                0.6,
+                colorCoding[60],
+                0.7,
+                colorCoding[70],
+                0.8,
+                colorCoding[80],
+                0.9,
+                colorCoding[90],
+                1,
+                colorCoding[100],
+            ],
+            'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 7, 3, 15, 3],
+        },
+    })
+
+    map.addLayer({
+        id: `prediction-${datetime}-${aoiId}-point`,
         type: 'circle',
         source: `prediction-${datetime}-${aoiId}`,
+        minzoom: 14,
         paint: {
-            'circle-radius': 10,
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 14, 5, 22, 10],
             'circle-color': [
                 'interpolate',
                 ['linear'],
@@ -72,7 +146,7 @@ export function addPredictionLayer(
         closeOnClick: false,
     })
 
-    map.on('mouseenter', `prediction-${datetime}-${aoiId}`, function (e) {
+    map.on('mouseenter', `prediction-${datetime}-${aoiId}-point`, function (e) {
         map.getCanvas().style.cursor = 'pointer'
 
         if (e.features![0].geometry.type === 'Point') {
@@ -93,7 +167,7 @@ export function addPredictionLayer(
         }
     })
 
-    map.on('mouseleave', `prediction-${datetime}-${aoiId}`, function () {
+    map.on('mouseleave', `prediction-${datetime}-${aoiId}-point`, function () {
         map.getCanvas().style.cursor = ''
         popup.remove()
     })
