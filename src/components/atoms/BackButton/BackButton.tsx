@@ -1,9 +1,9 @@
 import mapboxgl from 'mapbox-gl'
 import React from 'react'
-import './BackButton.css'
+import { removeAoiBboxLayer } from '../../../services/aoiBboxLayerService'
 import { removeAllPredictions } from '../../../services/predictionLayerService'
 import { showAoiCenters } from '../../../services/regionLayerService'
-import { removeAoiBboxLayer } from '../../../services/aoiBboxLayerService'
+import './BackButton.css'
 
 export const BackButton: React.FC<{ map: mapboxgl.Map; handleDeselectAoi: () => void }> = ({ map, handleDeselectAoi }) => {
     function handleGoBack() {
@@ -15,7 +15,7 @@ export const BackButton: React.FC<{ map: mapboxgl.Map; handleDeselectAoi: () => 
         const currentCenter = map.getCenter()
         map.flyTo({
             center: currentCenter,
-            zoom: 10,
+            zoom: 1,
             essential: true,
             speed: 1.7,
         })
