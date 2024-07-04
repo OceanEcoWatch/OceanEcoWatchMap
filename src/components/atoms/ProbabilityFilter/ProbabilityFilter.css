@@ -1,0 +1,101 @@
+#probability-slider {
+    background-color: red;
+    width: 75%;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+}
+
+#probability-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    margin-top: -14px;
+}
+
+#probability-slider:focus {
+    outline: none;
+}
+
+#probability-slider::-ms-track {
+    width: 100%;
+    cursor: pointer;
+
+    background: transparent;
+    border-color: transparent;
+    color: transparent;
+}
+
+#probability-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 32px;
+    height: 32px;
+    background: rgb(65, 64, 62);
+    cursor: pointer;
+    border-radius: 50%;
+    box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.2);
+}
+
+#probability-slider::-moz-range-thumb {
+    width: 32px;
+    height: 32px;
+    background: rgb(65, 64, 62);
+    cursor: pointer;
+    border-radius: 50%;
+    box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.2);
+}
+
+#probability-slider::-ms-thumb {
+    width: 32px;
+    height: 32px;
+    background: rgb(65, 64, 62);
+    cursor: pointer;
+    border-radius: 50%;
+    box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.2);
+}
+
+#probability-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 8px;
+    cursor: pointer;
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 4px;
+}
+
+#probability-slider::-moz-range-track {
+    width: 100%;
+    height: 8px;
+    cursor: pointer;
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 4px;
+}
+
+#probability-slider::-ms-track {
+    width: 100%;
+    height: 8px;
+    cursor: pointer;
+    background: transparent;
+    border-color: transparent;
+    color: transparent;
+}
+
+#probability-slider::-ms-fill-lower {
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 4px;
+}
+
+#probability-slider:focus::-ms-fill-lower {
+    background: transparent;
+}
+
+#probability-slider::-ms-fill-upper {
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 4px;
+}
+
+#probability-slider:focus::-ms-fill-upper {
+    background: transparent;
+}

@@ -3,6 +3,7 @@ import { IAOICenterProperties } from '../interfaces/api/IAOICenterProperties'
 import { IPredProperties } from '../interfaces/api/IPredProperties'
 import { IAPIRegionDatetimes, IRegionDatetime } from '../interfaces/api/IRegionDatetime'
 import { AoiId } from '../components/organisms/MapBoxMap/types'
+import { THRESHOLD_VALUE } from '../common/const'
 
 var baseUrl = process.env.REACT_APP_API_URL
 
@@ -56,13 +57,12 @@ export async function fetchRegionDatetimes(aoiId: AoiId): Promise<number[]> {
         console.error('Error loading region datetimes:', error)
         throw error
     }
-    //   todo use tanstack query
 }
 
 export async function fetchPredictions(
     datetime: number,
     aoiId: number,
-    accuracyLimit: number = 33,
+    accuracyLimit: number = THRESHOLD_VALUE,
 ): Promise<FeatureCollection<Point, IPredProperties>> {
     try {
         const response = await fetch(`${baseUrl}predictions-by-day-and-aoi?day=${datetime}&aoi_id=${aoiId}&accuracy_limit=${accuracyLimit}`)
@@ -71,11 +71,10 @@ export async function fetchPredictions(
         }
 
         const predictions: FeatureCollection<Point, IPredProperties> = await response.json()
-
+        console.log('fetchPredictions', predictions)
         return predictions
     } catch (error) {
         console.error('Error loading job predictions:', error)
         throw error
     }
-    //   todo use tanstack query
 }

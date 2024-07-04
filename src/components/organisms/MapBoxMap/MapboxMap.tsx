@@ -19,9 +19,10 @@ const MapboxMap: React.FC = () => {
     const mapContainerRef = useRef<HTMLDivElement>(null)
     const [map, setMap] = useState<mapboxgl.Map | null>(null)
     const [timestampToFetch, setTimestampToFetch] = useState<null | number>(null)
-
+    const [currentSelectedTimestamps, setCurrentSelectedTimestamps] = useState<number[]>([])
     const [currentAoiId, setCurrentAoiId] = useState<AoiId>(null)
     const [currentAoiData, setCurrentAoiData] = useState<null | IRegionData>(null)
+
     const [mapLoaded, setMapLoaded] = useState(false)
 
     const {
@@ -77,20 +78,30 @@ const MapboxMap: React.FC = () => {
         if (event.action === 'select-option') {
             if (event.option?.value) {
                 setTimestampToFetch(event.option.value)
+                setCurrentSelectedTimestamps([...currentSelectedTimestamps, event.option.value])
             }
         } else if (event.action === 'remove-value') {
             if (event.removedValue?.value && currentAoiId) {
                 removePredictionById(map!, event.removedValue.value, currentAoiId)
+                setCurrentSelectedTimestamps(currentSelectedTimestamps.filter((ts) => ts !== event.removedValue.value))
             }
         } else if (event.action === 'clear') {
             if (map) {
                 removeAllPredictions(map)
+                setCurrentSelectedTimestamps([])
             }
         }
 
         return
     }
 
+    function handleProbabilityFilterChange(e: React.ChangeEvent<HTMLInputElement>) {
+        for (let timestamp of currentSelectedTimestamps) {
+            const predictionLayerId = `prediction-${timestamp}-${currentAoiId}`
+            const filterValue = parseFloat(e.target.value)
+            map!.setFilter(predictionLayerId, ['>=', ['get', 'pixelValue'], filterValue])
+        }
+    }
 
     useEffect(() => {
         if (predictionQueryIsSuccess && map) {
@@ -108,6 +119,7 @@ const MapboxMap: React.FC = () => {
         if (timestampQueryIsSuccess && currentAoiId && currentAoiData) {
             setCurrentAoiData({ ...currentAoiData, timestamps: timestampQueryData })
             setTimestampToFetch(timestampQueryData[0])
+            setCurrentSelectedTimestamps([timestampQueryData[0]])
             //setIsSidebarOpen(true)
         }
     }, [timestampQueryIsSuccess, currentAoiId, timestampQueryData])
@@ -183,6 +195,7 @@ const MapboxMap: React.FC = () => {
                 regionProps={currentAoiData}
                 handleSelectedDaysChange={handleDaySelect}
                 handleDeselectAoi={handleDeselectAoi}
+                handleProbabilityFilterChange={handleProbabilityFilterChange}
                 map={map!}
             ></TopBanner>
             <div ref={mapContainerRef} className="map-container h-screen"></div>

@@ -9,6 +9,7 @@ import DaySelect from '../../molecules/DaySelect/DaySelect'
 import './OEWHeader.css'
 import { IRegionData } from '../MapBoxMap/types'
 import { ActionMeta } from 'react-select'
+import { ProbabilityFilter } from '../../atoms/ProbabilityFilter/ProbabilityFilter'
 
 interface OEWHeaderProps {
     logo: string
@@ -16,10 +17,19 @@ interface OEWHeaderProps {
     regionProps: null | IRegionData
     handleSelectedDaysChange: (event: ActionMeta<IDayOption>) => void
     handleDeselectAoi: () => void
+    handleProbabilityFilterChange: (e: React.ChangeEvent<HTMLInputElement>) => void
     map: mapboxgl.Map
 }
 
-const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handleSelectedDaysChange, map, handleDeselectAoi }) => {
+const OEWHeader: React.FC<OEWHeaderProps> = ({
+    logo,
+    isOpen,
+    regionProps,
+    handleSelectedDaysChange,
+    map,
+    handleDeselectAoi,
+    handleProbabilityFilterChange,
+}) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(isOpen)
     const [infoIsOpen, setInfo] = useState(false)
 
@@ -71,6 +81,8 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
                                         <div className="font-bold text-sm my-5 text-left">Select Days</div>
                                         {days.length > 0 && <DaySelect days={days} handleSelectedDaysChange={handleSelectedDaysChange} />}
                                     </div>
+
+                                    <ProbabilityFilter handleProbabilityFilterChange={handleProbabilityFilterChange}></ProbabilityFilter>
                                 </div>
                                 <ProbabilityLegend></ProbabilityLegend>
                             </div>

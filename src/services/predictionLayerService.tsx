@@ -28,6 +28,7 @@ export function addPredictionLayer(
     aoiId: number,
     predictionQueryData: FeatureCollection<Point, IPredProperties>,
 ) {
+    console.log('adding prediction layer', predictionQueryData)
     map.addSource(`prediction-${datetime}-${aoiId}`, {
         type: 'geojson',
         data: predictionQueryData,
