@@ -33,40 +33,6 @@ export function addPredictionLayer(
         data: predictionQueryData,
     })
 
-    // map.addLayer({
-    //     id: `prediction-${datetime}-${aoiId}`,
-    //     type: 'circle',
-    //     source: `prediction-${datetime}-${aoiId}`,
-    //     paint: {
-    //         'circle-radius': 10,
-    //         'circle-color': [
-    //             'interpolate',
-    //             ['linear'],
-    //             ['get', 'pixelValue'],
-    //             10,
-    //             colorCoding[10],
-    //             20,
-    //             colorCoding[20],
-    //             30,
-    //             colorCoding[30],
-    //             40,
-    //             colorCoding[40],
-    //             50,
-    //             colorCoding[50],
-    //             60,
-    //             colorCoding[60],
-    //             70,
-    //             colorCoding[70],
-    //             80,
-    //             colorCoding[80],
-    //             90,
-    //             colorCoding[90],
-    //             100,
-    //             colorCoding[100],
-    //         ],
-    //     },
-    // })
-
     map.addLayer({
         id: `prediction-${datetime}-${aoiId}-heatmap`,
         type: 'heatmap',
