@@ -2,7 +2,6 @@ import { FeatureCollection, GeoJsonProperties, Point, Polygon } from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import { AoiId, IRegionData } from '../components/organisms/MapBoxMap/types'
 import { addAoiBboxLayer } from './aoiBboxLayerService'
-import { type } from 'os'
 
 function capitalizeFirstLetterOfEachWord(input: string): string {
     return input
