@@ -138,10 +138,6 @@ export function addAoiCentersLayer(
             })
         })
     })
-    map.on('mouseleave', 'unclustered-point', () => {
-        map.getCanvas().style.cursor = ''
-        popup.remove()
-    })
 
     map.on('mouseenter', 'unclustered-point', (event) => {
         map.getCanvas().style.cursor = 'pointer'
