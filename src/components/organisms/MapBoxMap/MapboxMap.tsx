@@ -95,6 +95,7 @@ const MapboxMap: React.FC = () => {
         return
     }
 
+
     function handleProbabilityFilterChange(e: React.ChangeEvent<HTMLInputElement>) {
         for (let timestamp of currentSelectedTimestamps) {
             const predictionLayerId = `prediction-${timestamp}-${currentAoiId}`
@@ -102,6 +103,7 @@ const MapboxMap: React.FC = () => {
             map!.setFilter(predictionLayerId, ['>=', ['get', 'pixelValue'], filterValue])
         }
     }
+
 
     useEffect(() => {
         if (predictionQueryIsSuccess && map) {
