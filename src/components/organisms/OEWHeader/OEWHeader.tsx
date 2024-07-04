@@ -97,7 +97,7 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
                             and analyzes debris hotspots.
                             <br></br>
                             To explore, click on any red dot and zoom in to see a detailed marine debris analysis of the area. Each point represents a
-                            10 m² area with an estimated probability of marine debris presence.
+                            10m x 10m area with an estimated probability of marine debris presence.
                             <br></br>
                             We welcome your feedback and suggestions! If you enjoy this map or have ideas for new features or applications, please
                             contact us at: <a href="mailto:contact@oceanecowatch.org">contact@oceanecowatch.org</a>.<br></br>
