@@ -12,10 +12,8 @@ export const BackButton: React.FC<{ map: mapboxgl.Map; handleDeselectAoi: () => 
         showAoiCenters(map)
         handleDeselectAoi()
 
-        const currentCenter = map.getCenter()
         map.flyTo({
-            center: currentCenter,
-            zoom: 1,
+            zoom: 1.7,
             essential: true,
             speed: 1.7,
         })
