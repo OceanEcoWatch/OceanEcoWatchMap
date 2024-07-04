@@ -2,6 +2,7 @@ import { FeatureCollection, GeoJsonProperties, Point, Polygon } from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import { AoiId, IRegionData } from '../components/organisms/MapBoxMap/types'
 import { addAoiBboxLayer } from './aoiBboxLayerService'
+import { type } from 'os'
 
 function capitalizeFirstLetterOfEachWord(input: string): string {
     return input
@@ -45,8 +46,6 @@ export function addAoiCentersLayer(
     stateSetter: (regionData: IRegionData) => void,
     setCurrentAoiId: (aoiId: AoiId) => void,
 ): void {
-    console.log('Adding aoi centers layer', regions)
-
     map.addSource('aoi-centers', {
         type: 'geojson',
         data: regions,
@@ -106,7 +105,9 @@ export function addAoiCentersLayer(
         const regionName = e.features[0].properties.name
         const regionSize = e.features[0].properties.area_km2
         const regionPolygon: Polygon = JSON.parse(e.features[0].properties.polygon)
+        const bbox = JSON.parse(e.features[0].properties.bbox)
 
+        map.fitBounds(bbox, { padding: 88 })
         hideAoiCenters(map)
         addAoiBboxLayer(map, regionPolygon)
         stateSetter({
