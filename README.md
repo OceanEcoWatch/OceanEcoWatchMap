@@ -13,7 +13,7 @@ The application is deployed here: [Ocean Eco Watch Map](https://map.oceanecowatc
 -   **Mapbox**: Mapping library
 -   **TanStack Query**: State management library
 
-## Get STarted
+## Get Started
 
 In the project directory, you can run:
 
@@ -39,6 +39,6 @@ Your app is ready to be deployed!
 
 ## Deployement
 
-We have set up a build and deployment pipeline on AWS that is automatically triggered on every push to the master branch.
+We have set up a build and deployment pipeline on AWS that is automatically triggered on every push to the main branch.
 
 The application is doployed here: [https://map.oceanecowatch.org/](https://map.oceanecowatch.org/)
