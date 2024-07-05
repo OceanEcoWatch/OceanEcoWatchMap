@@ -33,7 +33,37 @@ function addRegionPopup(map: mapboxgl.Map) {
             popup.setLngLat([coordinates[0], coordinates[1]]).setHTML(description).addTo(map)
         }
     })
+
     map.on('mouseleave', 'regions', () => {
+        map.getCanvas().style.cursor = ''
+        popup.remove()
+    })
+}
+
+function addUnclusteredPointHover(map: mapboxgl.Map) {
+    const popup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+    })
+
+    map.on('mouseenter', 'unclustered-point', (event) => {
+        map.getCanvas().style.cursor = 'pointer'
+
+        const feature = event.features![0]
+        if (feature.geometry.type === 'Point') {
+            const coordinates = (feature.geometry as GeoJSON.Point).coordinates.slice()
+            const name = feature.properties?.name
+            const area = feature.properties?.area_km2
+            const description = `<strong>${capitalizeFirstLetterOfEachWord(name)}</strong><br>Size of the region: ${area.toFixed(2)} km<sup>2</sup>`
+
+            while (Math.abs(event.lngLat.lng - coordinates[0]) > 180) {
+                coordinates[0] += event.lngLat.lng > coordinates[0] ? 360 : -360
+            }
+            popup.setLngLat([coordinates[0], coordinates[1]]).setHTML(description).addTo(map)
+        }
+    })
+
+    map.on('mouseleave', 'unclustered-point', () => {
         map.getCanvas().style.cursor = ''
         popup.remove()
     })
@@ -94,9 +124,9 @@ export function addAoiCentersLayer(
     })
 
     addRegionPopup(map)
+    addUnclusteredPointHover(map)
 
     map.on('click', 'unclustered-point', async (e) => {
-        // Check if the properties object exists
         if (!e.features || !e.features[0]?.properties) {
             console.error('No properties found')
             return
@@ -147,30 +177,4 @@ export function showAoiCenters(map: mapboxgl.Map) {
     map.setLayoutProperty('clusters', 'visibility', 'visible')
     map.setLayoutProperty('cluster-count', 'visibility', 'visible')
     map.setLayoutProperty('unclustered-point', 'visibility', 'visible')
-}
-
-function addClusteredRegionPopup(map: mapboxgl.Map, content: string) {
-    const popup = new mapboxgl.Popup({
-        closeButton: false,
-        closeOnClick: false,
-    })
-
-    map.on('mouseenter', 'clusteredRegions', (event) => {
-        map.getCanvas().style.cursor = 'pointer'
-
-        if (event.features![0].geometry.type === 'Point') {
-            const coordinates = event.features![0].geometry.coordinates.slice() ?? []
-            const name = event.features![0].properties?.name
-            const area = event.features![0].properties?.area_km2
-
-            while (Math.abs(event.lngLat.lng - coordinates[0]) > 180) {
-                coordinates[0] += event.lngLat.lng > coordinates[0] ? 360 : -360
-            }
-            popup.setLngLat([coordinates[0], coordinates[1]]).setHTML(content).addTo(map)
-        }
-    })
-    map.on('mouseleave', 'clusteredRegions', () => {
-        map.getCanvas().style.cursor = ''
-        popup.remove()
-    })
 }
