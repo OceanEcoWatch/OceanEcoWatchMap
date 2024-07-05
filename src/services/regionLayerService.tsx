@@ -165,6 +165,12 @@ export function addAoiCentersLayer(
             })
         })
     })
+    map.on('mouseenter', 'clusters', (event) => {
+        map.getCanvas().style.cursor = 'pointer'
+    })
+    map.on('mouseleave', 'clusters', () => {
+        map.getCanvas().style.cursor = ''
+    })
 }
 
 export function hideAoiCenters(map: mapboxgl.Map) {
