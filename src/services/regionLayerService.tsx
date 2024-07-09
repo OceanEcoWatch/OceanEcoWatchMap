@@ -52,21 +52,37 @@ function addUnclusteredPointHover(map: mapboxgl.Map) {
         const feature = event.features![0]
         if (feature.geometry.type === 'Point') {
             const coordinates = (feature.geometry as GeoJSON.Point).coordinates.slice()
-            const { name, area_km2, start_date, end_date, unique_timestamp_count } = feature.properties!
+            const {
+                name,
+                area_km2: areaSkm,
+                start_date: startDate,
+                end_date: endDate,
+                unique_timestamp_count: uniqueTimestampCount,
+            } = feature.properties!
+
+            const dateOptions: Intl.DateTimeFormatOptions = {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+            }
+            const startDateString = new Date(startDate * 1000).toLocaleString(undefined, dateOptions)
+            const endDateString = new Date(endDate * 1000).toLocaleString(undefined, dateOptions) // Convert to human readable date, with browser timezone
             const description = `
             <strong>${capitalizeFirstLetterOfEachWord(name)}</strong>
             <table>
                 <tr>
                     <td>Size:</td>
-                    <td><strong>${area_km2.toFixed(2)} km<sup>2</sup></strong></td>
+                    <td><strong>${areaSkm.toFixed(2)} km<sup>2</sup></strong></td>
                 </tr>
                 <tr>
                     <td>Period:</td>
-                    <td><strong>${new Date(start_date).toLocaleDateString()} - ${new Date(end_date).toLocaleDateString()}</strong></td>
+                    <td><strong>${startDateString} - ${endDateString}</strong></td>
                 </tr>
                 <tr>
                     <td>Predicted days:</td>
-                    <td><strong>${unique_timestamp_count}</strong></td>
+                    <td><strong>${uniqueTimestampCount}</strong></td>
                 </tr>
             </table>
             <em>Click to see predictions</em>
