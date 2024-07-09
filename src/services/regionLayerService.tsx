@@ -52,9 +52,25 @@ function addUnclusteredPointHover(map: mapboxgl.Map) {
         const feature = event.features![0]
         if (feature.geometry.type === 'Point') {
             const coordinates = (feature.geometry as GeoJSON.Point).coordinates.slice()
-            const name = feature.properties?.name
-            const area = feature.properties?.area_km2
-            const description = `<strong>${capitalizeFirstLetterOfEachWord(name)}</strong><br>Size of the region: ${area.toFixed(2)} km<sup>2</sup>`
+            const { name, area_km2, start_date, end_date, unique_timestamp_count } = feature.properties!
+            const description = `
+            <strong>${capitalizeFirstLetterOfEachWord(name)}</strong>
+            <table>
+                <tr>
+                    <td>Size:</td>
+                    <td><strong>${area_km2.toFixed(2)} km<sup>2</sup></strong></td>
+                </tr>
+                <tr>
+                    <td>Period:</td>
+                    <td><strong>${new Date(start_date).toLocaleDateString()} - ${new Date(end_date).toLocaleDateString()}</strong></td>
+                </tr>
+                <tr>
+                    <td>Predicted days:</td>
+                    <td><strong>${unique_timestamp_count}</strong></td>
+                </tr>
+            </table>
+            <em>Click to see predictions</em>
+            `
 
             while (Math.abs(event.lngLat.lng - coordinates[0]) > 180) {
                 coordinates[0] += event.lngLat.lng > coordinates[0] ? 360 : -360
