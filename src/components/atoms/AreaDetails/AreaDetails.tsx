@@ -1,14 +1,11 @@
-import moment from 'moment'
 import './AreaDetails.css'
+import { IRegionData } from '../../organisms/MapBoxMap/types'
+import { getReadableDateFromUnixTimestamp } from '../../../common/utils'
 
-interface AreaDetailsProps {
-    areaSize: number
-    firstAnalysis: number
-    lastAnalysis: number
-    timestampsCount: number
-}
+type AreaDetailsProps = Pick<IRegionData, 'areaSize' | 'numberOfTimestampsWithPlastic' | 'startDate' | 'endDate' | 'timestamps'>
 
-export const AreaDetails: React.FC<AreaDetailsProps> = ({ areaSize, firstAnalysis, lastAnalysis, timestampsCount: timestepsCount }) => {
+export const AreaDetails: React.FC<AreaDetailsProps> = ({ areaSize, startDate, endDate, timestamps, numberOfTimestampsWithPlastic }) => {
+    const numberOfDays = timestamps.length
     return (
         <div className="text-center text-sm">
             <table>
@@ -28,7 +25,7 @@ export const AreaDetails: React.FC<AreaDetailsProps> = ({ areaSize, firstAnalysi
                             <p>First analysis:</p>
                         </td>
                         <td>
-                            <p>{moment.unix(firstAnalysis).format('DD.MM.YYYY')}</p>
+                            <p>{getReadableDateFromUnixTimestamp(startDate)}</p>
                         </td>
                     </tr>
                     <tr>
@@ -36,14 +33,20 @@ export const AreaDetails: React.FC<AreaDetailsProps> = ({ areaSize, firstAnalysi
                             <p>Last analysis:</p>
                         </td>
                         <td>
-                            <p>{moment.unix(lastAnalysis).format('DD.MM.YYYY')}</p>
+                            <p>{getReadableDateFromUnixTimestamp(endDate)}</p>
                         </td>
                     </tr>
                     <tr>
                         <td>
-                            <p>Amount of timestamps:</p>
+                            <p>Amount of days:</p>
                         </td>
-                        <td>{timestepsCount}</td>
+                        <td>{numberOfDays}</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>Days without high likely hood of plastic:</p>
+                        </td>
+                        <td>{numberOfDays - numberOfTimestampsWithPlastic}</td>
                     </tr>
                 </tbody>
             </table>
