@@ -100,9 +100,8 @@ export function addAoiCentersLayer(
             return
         }
 
-        const regionId = e.features[0].properties!.id
-        const regionName = e.features[0].properties.name
-        const regionSize = e.features[0].properties.area_km2
+        const { regionId, regionName, areaSize, startDate, endDate } = e.features[0].properties,
+            numberOfTimestampsWithPlastic = e.features[0].properties.number_of_timestamps_with_plastic
         const regionPolygon: Polygon = JSON.parse(e.features[0].properties.polygon)
         const bbox = JSON.parse(e.features[0].properties.bbox)
 
@@ -113,8 +112,11 @@ export function addAoiCentersLayer(
             id: regionId,
             timestamps: [],
             name: regionName,
-            areaSize: regionSize,
+            areaSize,
             polygon: regionPolygon,
+            startDate,
+            endDate,
+            numberOfTimestampsWithPlastic,
         })
         setCurrentAoiId(regionId)
     })

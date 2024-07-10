@@ -8,4 +8,7 @@ export interface IRegionData {
     name: string
     areaSize: number
     polygon: Polygon
+    startDate: number
+    endDate: number
+    numberOfTimestampsWithPlastic: number
 }
