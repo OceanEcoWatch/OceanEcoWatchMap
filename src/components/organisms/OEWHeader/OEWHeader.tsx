@@ -1,5 +1,4 @@
 import mapboxgl from 'mapbox-gl'
-import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { ActionMeta } from 'react-select'
 import { IDayOption } from '../../../interfaces/IDayOption'
@@ -35,13 +34,6 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
 
     const days: IDayOption[] = []
 
-    if (regionProps) {
-        regionProps.timestamps.forEach((timestamp) => {
-            const readableTimestamp = moment.unix(timestamp).format('DD.MM.YYYY HH:mm')
-            days.push({ value: timestamp, label: readableTimestamp })
-        })
-    }
-
     return (
         <div id="header">
             <button onClick={toggleSidebar} className="p-2 text-xl text-white bg-gray-700 hover:bg-gray-900 focus:outline-none z-20 rounded-md flex ">
@@ -60,10 +52,11 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
                             <div>
                                 <BackButton map={map} handleDeselectAoi={handleDeselectAoi}></BackButton>
                                 <AreaDetails
+                                    timestamps={regionProps.timestamps}
                                     areaSize={regionProps.areaSize}
-                                    firstAnalysis={regionProps.timestamps[0]}
-                                    lastAnalysis={regionProps.timestamps[regionProps.timestamps.length - 1]}
-                                    timestampsCount={regionProps.timestamps.length}
+                                    startDate={regionProps.startDate}
+                                    endDate={regionProps.endDate}
+                                    numberOfTimestampsWithPlastic={regionProps.numberOfTimestampsWithPlastic}
                                 ></AreaDetails>
                                 <div className="my-12">
                                     <div className="font-bold text-sm my-5 text-left">Select Days</div>
