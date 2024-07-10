@@ -1,3 +1,5 @@
+import moment from 'moment'
+
 type ColorCoding = {
     [key: number]: string
 }
@@ -13,4 +15,8 @@ export const colorCoding: ColorCoding = {
     80: 'rgba(128, 0, 38, 0.8)',
     90: 'rgba(102, 0, 38, 0.8)',
     100: 'rgba(61, 4, 4, 0.8)',
+}
+
+export const getReadableDateFromUnixTimestamp = (timestamp: number) => {
+    return moment.unix(timestamp).format('DD.MM.YYYY HH:mm')
 }
