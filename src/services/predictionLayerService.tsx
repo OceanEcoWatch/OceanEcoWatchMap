@@ -22,21 +22,16 @@ export function addPolygonLayer(map: mapboxgl.Map, aoi: Polygon) {
     })
 }
 
-export function addPredictionLayer(
-    map: mapboxgl.Map,
-    datetime: number,
-    aoiId: number,
-    predictionQueryData: FeatureCollection<Point, IPredProperties>,
-) {
-    map.addSource(`prediction-${datetime}-${aoiId}`, {
+export function addPredictionLayer(map: mapboxgl.Map, aoiId: number, currentPredictions: FeatureCollection<Point, IPredProperties>) {
+    map.addSource(`prediction-${aoiId}`, {
         type: 'geojson',
-        data: predictionQueryData,
+        data: currentPredictions,
     })
 
     map.addLayer({
-        id: `prediction-${datetime}-${aoiId}-heatmap`,
+        id: `prediction-${aoiId}-heatmap`,
         type: 'heatmap',
-        source: `prediction-${datetime}-${aoiId}`,
+        source: `prediction-${aoiId}`,
         maxzoom: 15,
         paint: {
             'heatmap-weight': ['interpolate', ['linear'], ['get', 'pixelValue'], 0, 0, 100, 1],
@@ -73,9 +68,9 @@ export function addPredictionLayer(
     })
 
     map.addLayer({
-        id: `prediction-${datetime}-${aoiId}-point`,
+        id: `prediction-${aoiId}-point`,
         type: 'circle',
-        source: `prediction-${datetime}-${aoiId}`,
+        source: `prediction-${aoiId}`,
         minzoom: 14,
         paint: {
             'circle-radius': ['interpolate', ['linear'], ['zoom'], 14, 5, 22, 10],
@@ -112,12 +107,12 @@ export function addPredictionLayer(
         closeOnClick: false,
     })
 
-    map.on('mouseenter', `prediction-${datetime}-${aoiId}-point`, function (e) {
+    map.on('mouseenter', `prediction-${aoiId}-point`, function (e) {
         map.getCanvas().style.cursor = 'pointer'
 
-        if (e.features![0].geometry.type === 'Point') {
+        if (e.features && e.features[0].geometry.type === 'Point') {
             var coordinates = e.features![0].geometry.coordinates.slice()
-            var description = `${moment.unix(datetime).format('DD.MM.YYYY HH:mm')}<br>
+            var description = `${moment.unix(e.features[0].properties!.timestamp).format('DD.MM.YYYY HH:mm')}<br>
                                ${e.features![0].properties?.pixelValue.toFixed(0)} %`
 
             // Ensure that if the map is zoomed out such that multiple
@@ -133,7 +128,7 @@ export function addPredictionLayer(
         }
     })
 
-    map.on('mouseleave', `prediction-${datetime}-${aoiId}-point`, function () {
+    map.on('mouseleave', `prediction-${aoiId}-point`, function () {
         map.getCanvas().style.cursor = ''
         popup.remove()
     })
@@ -157,27 +152,22 @@ export function getBoundingBox(polygon: Polygon): [number, number, number, numbe
     return [minX, minY, maxX, maxY]
 }
 
-export function removePredictionById(map: mapboxgl.Map, datetime: number, aoiId: number) {
-    const layerId = `prediction-${datetime}-${aoiId}`
-    const sourceId = `prediction-${datetime}-${aoiId}`
-
-    map.removeLayer(layerId)
-    map.removeSource(sourceId)
-}
-
 export function removeAllPredictions(map: mapboxgl.Map) {
-    const layers = map.getStyle().layers
-    layers.forEach((layer) => {
-        if (layer.id.startsWith('prediction')) {
-            console.log('removing layer', layer.id)
-            map.removeLayer(layer.id)
-        }
-    })
+    const mapStyle = map.getStyle()
+    if (mapStyle.layers) {
+        const layers = mapStyle.layers
+        layers.forEach((layer) => {
+            if (layer.id.startsWith('prediction')) {
+                console.log('removing layer', layer.id)
+                map.removeLayer(layer.id)
+            }
+        })
 
-    const sources = map.getStyle().sources
-    Object.keys(sources).forEach((sourceId) => {
-        if (sourceId.startsWith('prediction')) {
-            map.removeSource(sourceId)
-        }
-    })
+        const sources = map.getStyle().sources
+        Object.keys(sources).forEach((sourceId) => {
+            if (sourceId.startsWith('prediction')) {
+                map.removeSource(sourceId)
+            }
+        })
+    }
 }
