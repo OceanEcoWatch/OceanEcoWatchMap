@@ -75,10 +75,6 @@ const MapboxMap: React.FC = () => {
         refetchOnWindowFocus: false,
     })
 
-    // const openSidebar = () => {
-    //     setIsSidebarOpen(!isSidebarOpen)
-    // }
-
     function handleDeselectAoi() {
         setCurrentAoiId(null)
         setCurrentAoiData(null)
