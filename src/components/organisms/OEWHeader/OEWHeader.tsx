@@ -19,9 +19,10 @@ interface OEWHeaderProps {
     handleDeselectAoi: () => void
 
     map: mapboxgl.Map
+    isBusy: boolean
 }
 
-const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handleSelectedDaysChange, map, handleDeselectAoi }) => {
+const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handleSelectedDaysChange, map, handleDeselectAoi, isBusy }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(isOpen)
     const [infoIsOpen, setInfo] = useState(false)
 
@@ -67,7 +68,7 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
                                 ></AreaDetails>
                                 <div className="my-12">
                                     <div className="font-bold text-sm my-5 text-left">Select Days</div>
-                                    {days.length > 0 && <DaySelect days={days} handleSelectedDaysChange={handleSelectedDaysChange} />}
+                                    {days.length > 0 && <DaySelect isBusy={isBusy} days={days} handleSelectedDaysChange={handleSelectedDaysChange} />}
                                 </div>
                             </div>
                             <ProbabilityLegend></ProbabilityLegend>
