@@ -2,7 +2,7 @@ import { FeatureCollection, Point } from 'geojson'
 import { IAOICenterProperties } from '../interfaces/api/IAOICenterProperties'
 import { IPredProperties } from '../interfaces/api/IPredProperties'
 import { IAPIRegionDatetimes, IRegionDatetime } from '../interfaces/api/IRegionDatetime'
-import { AoiId } from '../components/organisms/MapBoxMap/types'
+import { AoiId, CurrentAoiMetaData } from '../components/organisms/MapBoxMap/types'
 
 var baseUrl = process.env.REACT_APP_API_URL
 
@@ -57,6 +57,23 @@ export async function fetchRegionDatetimes(aoiId: AoiId): Promise<number[]> {
         throw error
     }
     //   todo use tanstack query
+}
+
+export async function fetchCurrentAoiMetaData(aoiId: number): Promise<CurrentAoiMetaData> {
+    try {
+        const response = await fetch(`${baseUrl}aoi?id=${aoiId}`)
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.status)
+        }
+
+        const currentAoiMetaData: any = await JSON.parse(await response.json())
+        const metaData: CurrentAoiMetaData = {
+            timestampWithSignificantPlastic: currentAoiMetaData.features[0].properties.timestamp_with_plastic_count,
+        }
+        return metaData
+    } catch (error) {
+        throw error
+    }
 }
 
 export async function fetchPredictions(

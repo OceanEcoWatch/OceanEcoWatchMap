@@ -2,13 +2,13 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import React, { useEffect, useRef, useState } from 'react'
 import Logo from '../../../assets/logo.png'
-import { fetchRegionDatetimes, fetchAoiCenters, fetchPredictions } from '../../../services/mapService'
+import { fetchRegionDatetimes, fetchAoiCenters, fetchPredictions, fetchCurrentAoiMetaData } from '../../../services/mapService'
 import { initMap } from '../../../services/mapboxService'
 import { addPredictionLayer, removeAllPredictions, removePredictionById } from '../../../services/predictionLayerService'
 import { addAoiCentersLayer } from '../../../services/regionLayerService'
 import TopBanner from '../OEWHeader/OEWHeader'
 import './MapboxMap.css'
-import { IRegionData, AoiId } from './types'
+import { IRegionData, AoiId, CurrentAoiMetaData } from './types'
 import { useQuery } from '@tanstack/react-query'
 import { ActionMeta } from 'react-select'
 import { IDayOption } from '../../../interfaces/IDayOption'
@@ -23,6 +23,7 @@ const MapboxMap: React.FC = () => {
     const [currentAoiId, setCurrentAoiId] = useState<AoiId>(null)
     const [currentAoiData, setCurrentAoiData] = useState<null | IRegionData>(null)
     const [mapLoaded, setMapLoaded] = useState(false)
+    const [currentAoiMetaData, setCurrentAoiMetaData] = useState<null | CurrentAoiMetaData>(null)
 
     const {
         isLoading: predictionQueryisLoading,
@@ -63,9 +64,16 @@ const MapboxMap: React.FC = () => {
         refetchOnWindowFocus: false,
     })
 
-    // const openSidebar = () => {
-    //     setIsSidebarOpen(!isSidebarOpen)
-    // }
+    const {
+        isLoading: currentAoiMetaDataQueryisLoading,
+        isSuccess: currentAoiMetaDataQueryIsSuccess,
+        data: currentAoiMetaDataQueryData,
+    } = useQuery({
+        queryFn: async () => await fetchCurrentAoiMetaData(currentAoiId!),
+        enabled: Boolean(currentAoiId),
+        queryKey: ['currentAoiMetaData', currentAoiId],
+        refetchOnWindowFocus: false,
+    })
 
     function handleDeselectAoi() {
         setCurrentAoiId(null)
@@ -87,7 +95,6 @@ const MapboxMap: React.FC = () => {
                 removeAllPredictions(map)
             }
         }
-
         return
     }
 
@@ -117,6 +124,11 @@ const MapboxMap: React.FC = () => {
         return () => map.remove()
     }, [])
 
+    useEffect(() => {
+        if (currentAoiMetaDataQueryIsSuccess) {
+            setCurrentAoiMetaData(currentAoiMetaDataQueryData)
+        }
+    }, [currentAoiMetaDataQueryIsSuccess, currentAoiMetaDataQueryData])
     return (
         <div>
             {aoiQueryIsLoading && (
@@ -180,6 +192,7 @@ const MapboxMap: React.FC = () => {
                 logo={Logo}
                 isOpen={!!currentAoiId}
                 regionProps={currentAoiData}
+                currentAoiMetaData={currentAoiMetaData}
                 handleSelectedDaysChange={handleDaySelect}
                 handleDeselectAoi={handleDeselectAoi}
                 map={map!}

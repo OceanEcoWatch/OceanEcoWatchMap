@@ -6,9 +6,16 @@ interface AreaDetailsProps {
     firstAnalysis: number
     lastAnalysis: number
     timestampsCount: number
+    timestampWithSignificantPlastic?: number
 }
 
-export const AreaDetails: React.FC<AreaDetailsProps> = ({ areaSize, firstAnalysis, lastAnalysis, timestampsCount: timestepsCount }) => {
+export const AreaDetails: React.FC<AreaDetailsProps> = ({
+    areaSize,
+    firstAnalysis,
+    lastAnalysis,
+    timestampsCount,
+    timestampWithSignificantPlastic,
+}) => {
     return (
         <div className="text-center text-sm">
             <table>
@@ -43,8 +50,16 @@ export const AreaDetails: React.FC<AreaDetailsProps> = ({ areaSize, firstAnalysi
                         <td>
                             <p>Amount of timestamps:</p>
                         </td>
-                        <td>{timestepsCount}</td>
+                        <td>{timestampsCount}</td>
                     </tr>
+                    {timestampWithSignificantPlastic && (
+                        <tr>
+                            <td>
+                                <p>Number of days without plastic found:</p>
+                            </td>
+                            <td>{timestampsCount - timestampWithSignificantPlastic}</td>
+                        </tr>
+                    )}
                 </tbody>
             </table>
         </div>

@@ -8,7 +8,7 @@ import { BackButton } from '../../atoms/BackButton/BackButton'
 import MapProjectionButton from '../../atoms/MapProjectionButton/MapProjectionButton'
 import { ProbabilityLegend } from '../../atoms/ProbabilityLegend/ProbabilityLegend'
 import DaySelect from '../../molecules/DaySelect/DaySelect'
-import { IRegionData } from '../MapBoxMap/types'
+import { IRegionData, CurrentAoiMetaData } from '../MapBoxMap/types'
 import './OEWHeader.css'
 
 interface OEWHeaderProps {
@@ -17,11 +17,12 @@ interface OEWHeaderProps {
     regionProps: null | IRegionData
     handleSelectedDaysChange: (event: ActionMeta<IDayOption>) => void
     handleDeselectAoi: () => void
+    currentAoiMetaData: CurrentAoiMetaData | null
 
     map: mapboxgl.Map
 }
 
-const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handleSelectedDaysChange, map, handleDeselectAoi }) => {
+const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handleSelectedDaysChange, map, handleDeselectAoi, currentAoiMetaData }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(isOpen)
     const [infoIsOpen, setInfo] = useState(false)
 
@@ -64,6 +65,7 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
                                     firstAnalysis={regionProps.timestamps[0]}
                                     lastAnalysis={regionProps.timestamps[regionProps.timestamps.length - 1]}
                                     timestampsCount={regionProps.timestamps.length}
+                                    timestampWithSignificantPlastic={currentAoiMetaData?.timestampWithSignificantPlastic}
                                 ></AreaDetails>
                                 <div className="my-12">
                                     <div className="font-bold text-sm my-5 text-left">Select Days</div>
