@@ -70,11 +70,8 @@ export async function fetchCurrentAoiMetaData(aoiId: number): Promise<CurrentAoi
         const metaData: CurrentAoiMetaData = {
             timestampWithSignificantPlastic: currentAoiMetaData.features[0].properties.timestamp_with_plastic_count,
         }
-        console.log('currentaoiMeatdata2 response', currentAoiMetaData)
-        console.log('currentAoiMetaData2', metaData)
         return metaData
     } catch (error) {
-        console.error('Error retrieving currentAOI meta data:', error)
         throw error
     }
 }
