@@ -41,7 +41,6 @@ function addUnclusteredPointHover(map: mapboxgl.Map) {
             }
             const startDateString = new Date(startDate * 1000).toLocaleString(undefined, dateOptions)
             const endDateString = new Date(endDate * 1000).toLocaleString(undefined, dateOptions) // Convert to human readable date, with browser timezone
-            console.log('Feature', event.features![0])
             const description = `
             <strong>${capitalizeFirstLetterOfEachWord(name)}</strong>
             <table>
