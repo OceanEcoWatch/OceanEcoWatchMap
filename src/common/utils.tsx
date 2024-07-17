@@ -14,3 +14,13 @@ export const colorCoding: ColorCoding = {
     90: 'rgba(102, 0, 38, 0.8)',
     100: 'rgba(61, 4, 4, 0.8)',
 }
+
+export const getBeginningOfUTCDay = (timestamp: number) => {
+    // Given timestamp
+    timestamp = timestamp * 1000 // Convert to milliseconds
+    const date = new Date(timestamp)
+    // Reset the time components to get the start of the UTC day
+    date.setUTCHours(0, 0, 0, 0)
+    // Get the new timestamp (in milliseconds) and convert to seconds
+    return Math.floor(date.getTime() / 1000)
+}
