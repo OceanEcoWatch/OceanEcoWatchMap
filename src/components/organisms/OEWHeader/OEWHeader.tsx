@@ -10,6 +10,7 @@ import { ProbabilityLegend } from '../../atoms/ProbabilityLegend/ProbabilityLege
 import DaySelect from '../../molecules/DaySelect/DaySelect'
 import { IRegionData, CurrentAoiMetaData } from '../MapBoxMap/types'
 import './OEWHeader.css'
+import { SCLInformationContainer } from '../../atoms/SceneClassification/SclContainer'
 
 interface OEWHeaderProps {
     logo: string
@@ -21,6 +22,7 @@ interface OEWHeaderProps {
 
     map: mapboxgl.Map
     isBusy: boolean
+    uniqueSelectedTimestamps: number[]
 }
 
 const OEWHeader: React.FC<OEWHeaderProps> = ({
@@ -32,6 +34,7 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({
     handleDeselectAoi,
     isBusy,
     currentAoiMetaData,
+    uniqueSelectedTimestamps,
 }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(isOpen)
     const [infoIsOpen, setInfo] = useState(false)
@@ -84,6 +87,9 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({
                             </div>
                             <ProbabilityLegend></ProbabilityLegend>
                         </div>
+                    )}
+                    {uniqueSelectedTimestamps && regionProps?.id && (
+                        <SCLInformationContainer selectedTimestamps={uniqueSelectedTimestamps || []} currentAoiId={regionProps.id} map={map} />
                     )}
                 </div>
             </div>

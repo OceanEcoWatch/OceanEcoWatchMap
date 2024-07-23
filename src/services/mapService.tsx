@@ -1,8 +1,9 @@
-import { FeatureCollection, Point } from 'geojson'
+import { FeatureCollection, Point, Polygon } from 'geojson'
 import { IAOICenterProperties } from '../interfaces/api/IAOICenterProperties'
 import { IPredProperties } from '../interfaces/api/IPredProperties'
-import { IAPIRegionDatetimes, IRegionDatetime } from '../interfaces/api/IRegionDatetime'
+import { IAPIRegionDatetimes } from '../interfaces/api/IRegionDatetime'
 import { AoiId, CurrentAoiMetaData } from '../components/organisms/MapBoxMap/types'
+import { ISCLProperties } from '../interfaces/api/ISCLProperties'
 
 var baseUrl = process.env.REACT_APP_API_URL
 
@@ -92,6 +93,26 @@ export async function fetchPredictions(
         return predictions
     } catch (error) {
         console.error('Error loading job predictions:', error)
+        throw error
+    }
+    //   todo use tanstack query
+}
+
+export async function fetchSceneClassificationInfo(timestamp: number, aoiId: number): Promise<FeatureCollection<Polygon, ISCLProperties>> {
+    const allClassesQuery =
+        'classification=1&classification=2&classification=3&classification=4&classification=5&classification=6&classification=7&classification=8&classification=9&classification=10&classification=11'
+    // const allClases = encodeURIComponent('1,2,3,4,5,6,7,8,9,10,11')
+    const timestampISO8601UrlEncoded = encodeURIComponent(new Date(timestamp * 1000).toISOString())
+    try {
+        const response = await fetch(`${baseUrl}scl?${allClassesQuery}&aoi_id=${aoiId}&timestamp=${timestampISO8601UrlEncoded}`)
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.status)
+        }
+
+        const sclInfo: FeatureCollection<Polygon, ISCLProperties> = JSON.parse(await response.json())
+        return sclInfo
+    } catch (error) {
+        console.error('Error loading SCL information:', error)
         throw error
     }
     //   todo use tanstack query
