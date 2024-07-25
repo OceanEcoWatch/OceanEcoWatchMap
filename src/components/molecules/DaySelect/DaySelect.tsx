@@ -5,13 +5,11 @@ import { IDayOption } from '../../../interfaces/IDayOption'
 interface DaySelectProps {
     days: IDayOption[]
     handleSelectedDaysChange: (event: ActionMeta<IDayOption>) => void
-    isBusy: boolean
 }
 
-const DaySelect: React.FC<DaySelectProps> = ({ days, handleSelectedDaysChange, isBusy }) => {
+const DaySelect: React.FC<DaySelectProps> = ({ days, handleSelectedDaysChange }) => {
     return (
         <Select
-            isDisabled={isBusy}
             defaultValue={days[0]}
             isMulti
             name="days"

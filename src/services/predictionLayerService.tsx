@@ -22,58 +22,23 @@ export function addPolygonLayer(map: mapboxgl.Map, aoi: Polygon) {
     })
 }
 
-export function addPredictionLayer(map: mapboxgl.Map, aoiId: number, currentPredictions: FeatureCollection<Point, IPredProperties>) {
-    map.addSource(`prediction-${aoiId}`, {
+export function addPredictionLayer(
+    map: mapboxgl.Map,
+    datetime: number,
+    aoiId: number,
+    predictionQueryData: FeatureCollection<Point, IPredProperties>,
+) {
+    map.addSource(`prediction-${datetime}-${aoiId}`, {
         type: 'geojson',
-        data: currentPredictions,
+        data: predictionQueryData,
     })
 
     map.addLayer({
-        id: `prediction-${aoiId}-heatmap`,
-        type: 'heatmap',
-        source: `prediction-${aoiId}`,
-        maxzoom: 15,
-        paint: {
-            'heatmap-weight': ['interpolate', ['linear'], ['get', 'pixelValue'], 0, 0, 100, 1],
-            'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 15, 15, 15],
-            'heatmap-color': [
-                'interpolate',
-                ['linear'],
-                ['heatmap-density'],
-                0,
-                'rgba(255, 237, 160, 0)',
-                0.1,
-                colorCoding[10],
-                0.2,
-                colorCoding[20],
-                0.3,
-                colorCoding[30],
-                0.4,
-                colorCoding[40],
-                0.5,
-                colorCoding[50],
-                0.6,
-                colorCoding[60],
-                0.7,
-                colorCoding[70],
-                0.8,
-                colorCoding[80],
-                0.9,
-                colorCoding[90],
-                1,
-                colorCoding[100],
-            ],
-            'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 7, 3, 15, 3],
-        },
-    })
-
-    map.addLayer({
-        id: `prediction-${aoiId}-point`,
+        id: `prediction-${datetime}-${aoiId}`,
         type: 'circle',
-        source: `prediction-${aoiId}`,
-        minzoom: 14,
+        source: `prediction-${datetime}-${aoiId}`,
         paint: {
-            'circle-radius': ['interpolate', ['linear'], ['zoom'], 14, 5, 22, 10],
+            'circle-radius': 10,
             'circle-color': [
                 'interpolate',
                 ['linear'],
@@ -107,12 +72,12 @@ export function addPredictionLayer(map: mapboxgl.Map, aoiId: number, currentPred
         closeOnClick: false,
     })
 
-    map.on('mouseenter', `prediction-${aoiId}-point`, function (e) {
+    map.on('mouseenter', `prediction-${datetime}-${aoiId}`, function (e) {
         map.getCanvas().style.cursor = 'pointer'
 
-        if (e.features && e.features[0].geometry.type === 'Point') {
+        if (e.features![0].geometry.type === 'Point') {
             var coordinates = e.features![0].geometry.coordinates.slice()
-            var description = `${moment.unix(e.features[0].properties!.timestamp).format('DD.MM.YYYY HH:mm')}<br>
+            var description = `${moment.unix(datetime).format('DD.MM.YYYY HH:mm')}<br>
                                ${e.features![0].properties?.pixelValue.toFixed(0)} %`
 
             // Ensure that if the map is zoomed out such that multiple
@@ -128,7 +93,7 @@ export function addPredictionLayer(map: mapboxgl.Map, aoiId: number, currentPred
         }
     })
 
-    map.on('mouseleave', `prediction-${aoiId}-point`, function () {
+    map.on('mouseleave', `prediction-${datetime}-${aoiId}`, function () {
         map.getCanvas().style.cursor = ''
         popup.remove()
     })
@@ -152,22 +117,27 @@ export function getBoundingBox(polygon: Polygon): [number, number, number, numbe
     return [minX, minY, maxX, maxY]
 }
 
-export function removeAllPredictions(map: mapboxgl.Map) {
-    const mapStyle = map.getStyle()
-    if (mapStyle.layers) {
-        const layers = mapStyle.layers
-        layers.forEach((layer) => {
-            if (layer.id.startsWith('prediction')) {
-           
-                map.removeLayer(layer.id)
-            }
-        })
+export function removePredictionById(map: mapboxgl.Map, datetime: number, aoiId: number) {
+    const layerId = `prediction-${datetime}-${aoiId}`
+    const sourceId = `prediction-${datetime}-${aoiId}`
 
-        const sources = map.getStyle().sources
-        Object.keys(sources).forEach((sourceId) => {
-            if (sourceId.startsWith('prediction')) {
-                map.removeSource(sourceId)
-            }
-        })
-    }
+    map.removeLayer(layerId)
+    map.removeSource(sourceId)
+}
+
+export function removeAllPredictions(map: mapboxgl.Map) {
+    const layers = map.getStyle().layers
+    layers.forEach((layer) => {
+        if (layer.id.startsWith('prediction')) {
+            console.log('removing layer', layer.id)
+            map.removeLayer(layer.id)
+        }
+    })
+
+    const sources = map.getStyle().sources
+    Object.keys(sources).forEach((sourceId) => {
+        if (sourceId.startsWith('prediction')) {
+            map.removeSource(sourceId)
+        }
+    })
 }
