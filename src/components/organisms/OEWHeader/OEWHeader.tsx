@@ -8,9 +8,10 @@ import { BackButton } from '../../atoms/BackButton/BackButton'
 import MapProjectionButton from '../../atoms/MapProjectionButton/MapProjectionButton'
 import { ProbabilityLegend } from '../../atoms/ProbabilityLegend/ProbabilityLegend'
 import DaySelect from '../../molecules/DaySelect/DaySelect'
-import { IRegionData, CurrentAoiMetaData } from '../MapBoxMap/types'
+import { IRegionData, CurrentAoiMetaData, AoiId } from '../MapBoxMap/types'
 import './OEWHeader.css'
 import { SCLInformationContainer } from '../../atoms/SceneClassification/SclContainer'
+import { ProbabilityFilter } from '../../atoms/ProbabilityFilter/ProbabilityFilter'
 
 interface OEWHeaderProps {
     logo: string
@@ -85,6 +86,7 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({
                                     {days.length > 0 && <DaySelect isBusy={isBusy} days={days} handleSelectedDaysChange={handleSelectedDaysChange} />}
                                 </div>
                             </div>
+                            <ProbabilityFilter map={map} aoiId={regionProps.id}></ProbabilityFilter>
                             <ProbabilityLegend></ProbabilityLegend>
                         </div>
                     )}
