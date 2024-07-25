@@ -20,7 +20,7 @@ import { getBeginningOfUTCDay } from '../../../common/utils'
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY!
 
 const MapboxMap: React.FC = () => {
-    const [predictionQueryParams, setPredictionQueryParams] = useState<{ timestamp: number; aoiId: number } | null>(null)
+    const [predictionQueryParams, setPredictionQueryParams] = useState<{ timestamp: number; aoiId: number } | undefined>(undefined)
     const [shouldAddToPredictions, setShouldAddToPredictions] = useState<boolean>(false)
     const {
         isPending: predictionQueryIsPending,
@@ -39,6 +39,17 @@ const MapboxMap: React.FC = () => {
     const [currentAoiMetaData, setCurrentAoiMetaData] = useState<null | CurrentAoiMetaData>(null)
     const [currentPredictions, setCurrentPredictions] = useState<null | FeatureCollection<Point, IPredProperties>>(null)
 
+    const getUniqueSelectedTimestamps = (): number[] => {
+        const uniqueCurrentTimestamps: number[] = []
+        if (currentPredictions && currentPredictions.features) {
+            for (const feature of currentPredictions.features) {
+                if (!uniqueCurrentTimestamps.includes(feature.properties.timestamp)) {
+                    uniqueCurrentTimestamps.push(feature.properties.timestamp)
+                }
+            }
+        }
+        return uniqueCurrentTimestamps
+    }
     const {
         isLoading: timestampQueryisLoading,
         isSuccess: timestampQueryIsSuccess,
@@ -233,6 +244,7 @@ const MapboxMap: React.FC = () => {
                 handleDeselectAoi={handleDeselectAoi}
                 map={map!}
                 isBusy={predictionQueryIsPending || predictionQueryIsFetching}
+                uniqueSelectedTimestamps={getUniqueSelectedTimestamps()}
             ></TopBanner>
             <div ref={mapContainerRef} className="map-container h-screen"></div>
         </div>

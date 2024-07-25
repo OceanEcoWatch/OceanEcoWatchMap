@@ -158,7 +158,7 @@ export function removeAllPredictions(map: mapboxgl.Map) {
         const layers = mapStyle.layers
         layers.forEach((layer) => {
             if (layer.id.startsWith('prediction')) {
-                console.log('removing layer', layer.id)
+           
                 map.removeLayer(layer.id)
             }
         })
