@@ -1,15 +1,16 @@
 import mapboxgl from 'mapbox-gl'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
+import { ActionMeta } from 'react-select'
 import { IDayOption } from '../../../interfaces/IDayOption'
 import { AreaDetails } from '../../atoms/AreaDetails/AreaDetails'
 import { BackButton } from '../../atoms/BackButton/BackButton'
+import MapProjectionButton from '../../atoms/MapProjectionButton/MapProjectionButton'
 import { ProbabilityLegend } from '../../atoms/ProbabilityLegend/ProbabilityLegend'
 import DaySelect from '../../molecules/DaySelect/DaySelect'
+import { IRegionData, CurrentAoiMetaData } from '../MapBoxMap/types'
 import './OEWHeader.css'
-import MapProjectionButton from '../../atoms/MapProjectionButton/MapProjectionButton'
-import { IRegionData } from '../MapBoxMap/types'
-import { ActionMeta } from 'react-select'
+import { SCLInformationContainer } from '../../atoms/SceneClassification/SclContainer'
 
 interface OEWHeaderProps {
     logo: string
@@ -17,11 +18,24 @@ interface OEWHeaderProps {
     regionProps: null | IRegionData
     handleSelectedDaysChange: (event: ActionMeta<IDayOption>) => void
     handleDeselectAoi: () => void
+    currentAoiMetaData: CurrentAoiMetaData | null
 
     map: mapboxgl.Map
+    isBusy: boolean
+    uniqueSelectedTimestamps: number[]
 }
 
-const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handleSelectedDaysChange, map, handleDeselectAoi }) => {
+const OEWHeader: React.FC<OEWHeaderProps> = ({
+    logo,
+    isOpen,
+    regionProps,
+    handleSelectedDaysChange,
+    map,
+    handleDeselectAoi,
+    isBusy,
+    currentAoiMetaData,
+    uniqueSelectedTimestamps,
+}) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(isOpen)
     const [infoIsOpen, setInfo] = useState(false)
 
@@ -36,7 +50,7 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
     const days: IDayOption[] = []
 
     if (regionProps) {
-        regionProps.timestamps.forEach((timestamp, index) => {
+        regionProps.timestamps.forEach((timestamp) => {
             const readableTimestamp = moment.unix(timestamp).format('DD.MM.YYYY HH:mm')
             days.push({ value: timestamp, label: readableTimestamp })
         })
@@ -53,7 +67,8 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
                 } transform top-0 left-0 w-64 text-white fixed h-full transition-transform duration-300 ease-in-out z-10`}
             >
                 <div className="p-5 text-base font-bold">{regionProps?.name}</div>
-                <div id="sidebar" className="flex flex-col items-center space-y-4">
+                <div id="sidebar" className="flex flex-col items-center justify-center h-full">
+                    {regionProps === null && <p>Click on one of the red dots to select a region first.</p>}
                     {regionProps && (
                         <div className="container flex flex-col justify-between h-full">
                             <div>
@@ -63,14 +78,18 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
                                     firstAnalysis={regionProps.timestamps[0]}
                                     lastAnalysis={regionProps.timestamps[regionProps.timestamps.length - 1]}
                                     timestampsCount={regionProps.timestamps.length}
+                                    timestampWithSignificantPlastic={currentAoiMetaData?.timestampWithSignificantPlastic}
                                 ></AreaDetails>
                                 <div className="my-12">
                                     <div className="font-bold text-sm my-5 text-left">Select Days</div>
-                                    {days.length > 0 && <DaySelect days={days} handleSelectedDaysChange={handleSelectedDaysChange} />}
+                                    {days.length > 0 && <DaySelect isBusy={isBusy} days={days} handleSelectedDaysChange={handleSelectedDaysChange} />}
                                 </div>
                             </div>
                             <ProbabilityLegend></ProbabilityLegend>
                         </div>
+                    )}
+                    {uniqueSelectedTimestamps && regionProps?.id && (
+                        <SCLInformationContainer selectedTimestamps={uniqueSelectedTimestamps || []} currentAoiId={regionProps.id} map={map} />
                     )}
                 </div>
             </div>
@@ -90,12 +109,28 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
                     i
                 </button>
                 {infoIsOpen && (
-                    <div id="info-div" className="absolute top-24 right-2 p-4">
+                    <div id="info-div" className="absolute top-24 right-2 p-5">
                         <p className="text-start">
-                            The <a href="https://www.oceanecowatch.org/">Ocean Eco Watch</a> is a map highliting potential locations of floating
-                            marine debris. We use data from the sentinel-2 satellite. Click on a location to get the detailed analysis of the area.
-                            Each point on the map corresponds to the probability of present marine debris and represents an area spanning 10 m².
+                            <a href="https://www.oceanecowatch.org/">Ocean Eco Watch</a> is an interactive map highlighting potential locations of
+                            floating marine debris in various coastal areas. Utilizing data from the ESA's Sentinel-2 satellite, our map identifies
+                            and analyzes debris hotspots.
+                            <br></br>
+                            To explore, click on any red dot and zoom in to see a detailed marine debris analysis of the area. Each point represents a
+                            10m x 10m area with an estimated probability of marine debris presence.
+                            <br></br>
+                            We welcome your feedback and suggestions! If you enjoy this map or have ideas for new features or applications, please
+                            contact us at: <a href="mailto:contact@oceanecowatch.org">contact@oceanecowatch.org</a>.<br></br>
+                            As an open-source project, you can find and contribute to our source code on{' '}
+                            <a href="https://github.com/OceanEcoWatch">GitHub</a>.
                         </p>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={toggleInfo}
+                                className="bg-gray-800 hover:bg-gray-900 text-white font-bold text-sm py-2 px-4 rounded shadow-lg"
+                            >
+                                close
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

@@ -2,43 +2,54 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import React, { useEffect, useRef, useState } from 'react'
 import Logo from '../../../assets/logo.png'
-import { fetchRegionDatetimes, fetchAoiCenters, fetchPredictions } from '../../../services/mapService'
+import { fetchRegionDatetimes, fetchAoiCenters, fetchCurrentAoiMetaData } from '../../../services/mapService'
 import { initMap } from '../../../services/mapboxService'
-import { addPredictionLayer, removeAllPredictions, removePredictionById } from '../../../services/predictionLayerService'
+import { addPredictionLayer, removeAllPredictions } from '../../../services/predictionLayerService'
 import { addAoiCentersLayer } from '../../../services/regionLayerService'
 import TopBanner from '../OEWHeader/OEWHeader'
 import './MapboxMap.css'
-import { IRegionData, AoiId } from './types'
+import { IRegionData, AoiId, CurrentAoiMetaData } from './types'
 import { useQuery } from '@tanstack/react-query'
 import { ActionMeta } from 'react-select'
 import { IDayOption } from '../../../interfaces/IDayOption'
+import { FeatureCollection, Point } from 'geojson'
+import { IPredProperties } from '../../../interfaces/api/IPredProperties'
+import { usePredictionQuery } from '../usePredictionQuery'
+import { getBeginningOfUTCDay } from '../../../common/utils'
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY!
 
 const MapboxMap: React.FC = () => {
+    const [predictionQueryParams, setPredictionQueryParams] = useState<{ timestamp: number; aoiId: number } | undefined>(undefined)
+    const [shouldAddToPredictions, setShouldAddToPredictions] = useState<boolean>(false)
+    const {
+        isPending: predictionQueryIsPending,
+        isFetching: predictionQueryIsFetching,
+        isSuccess: predictionQueryIsSuccess,
+        data: predictionQueryData,
+        isLoading: predictionQueryIsLoading,
+    } = usePredictionQuery(predictionQueryParams?.timestamp, predictionQueryParams?.aoiId!)
+
     const mapContainerRef = useRef<HTMLDivElement>(null)
     const [map, setMap] = useState<mapboxgl.Map | null>(null)
-    const [timestampToFetch, setTimestampToFetch] = useState<null | number>(null)
 
     const [currentAoiId, setCurrentAoiId] = useState<AoiId>(null)
     const [currentAoiData, setCurrentAoiData] = useState<null | IRegionData>(null)
     const [mapLoaded, setMapLoaded] = useState(false)
+    const [currentAoiMetaData, setCurrentAoiMetaData] = useState<null | CurrentAoiMetaData>(null)
+    const [currentPredictions, setCurrentPredictions] = useState<null | FeatureCollection<Point, IPredProperties>>(null)
 
-    const {
-        isLoading: predictionQueryisLoading,
-        isSuccess: predictionQueryIsSuccess,
-        data: predictionQueryData,
-    } = useQuery({
-        queryKey: timestampToFetch && currentAoiData && currentAoiData.id ? ['prediction', timestampToFetch, currentAoiData.id] : ['no-query'],
-        queryFn: async () => {
-            if (timestampToFetch && currentAoiData && currentAoiData.id) {
-                return await fetchPredictions(timestampToFetch, currentAoiData.id)
+    const getUniqueSelectedTimestamps = (): number[] => {
+        const uniqueCurrentTimestamps: number[] = []
+        if (currentPredictions && currentPredictions.features) {
+            for (const feature of currentPredictions.features) {
+                if (!uniqueCurrentTimestamps.includes(feature.properties.timestamp)) {
+                    uniqueCurrentTimestamps.push(feature.properties.timestamp)
+                }
             }
-            return null
-        },
-        enabled: Boolean(timestampToFetch && currentAoiData && currentAoiData.id),
-    })
-
+        }
+        return uniqueCurrentTimestamps
+    }
     const {
         isLoading: timestampQueryisLoading,
         isSuccess: timestampQueryIsSuccess,
@@ -63,52 +74,95 @@ const MapboxMap: React.FC = () => {
         refetchOnWindowFocus: false,
     })
 
-    // const openSidebar = () => {
-    //     setIsSidebarOpen(!isSidebarOpen)
-    // }
+    const {
+        isLoading: currentAoiMetaDataQueryisLoading,
+        isSuccess: currentAoiMetaDataQueryIsSuccess,
+        data: currentAoiMetaDataQueryData,
+    } = useQuery({
+        queryFn: async () => await fetchCurrentAoiMetaData(currentAoiId!),
+        enabled: Boolean(currentAoiId),
+        queryKey: ['currentAoiMetaData', currentAoiId],
+        refetchOnWindowFocus: false,
+    })
 
     function handleDeselectAoi() {
         setCurrentAoiId(null)
         setCurrentAoiData(null)
-        setTimestampToFetch(null)
+        setCurrentPredictions(null)
     }
 
-    function handleDaySelect(event: ActionMeta<IDayOption>) {
+    async function handleDaySelect(event: ActionMeta<IDayOption>) {
         if (event.action === 'select-option') {
-            if (event.option?.value) {
-                setTimestampToFetch(event.option.value)
-            }
+            //set the timestamp to fetch the prediction
+            setPredictionQueryParams({ timestamp: event.option!.value!, aoiId: currentAoiId! })
+            setShouldAddToPredictions(true)
         } else if (event.action === 'remove-value') {
-            if (event.removedValue?.value && currentAoiId) {
-                removePredictionById(map!, event.removedValue.value, currentAoiId)
+            const timestampToRemove = event.removedValue.value
+            //filter out the removed value from the feature collection currentPredictions
+            if (!currentPredictions || !currentPredictions?.features) {
+                setCurrentPredictions(null)
+                return
+            }
+
+            const remainingFeatures = currentPredictions!.features.filter(
+                (feature) => getBeginningOfUTCDay(feature.properties.timestamp) !== timestampToRemove,
+            )
+            if (remainingFeatures.length! > 0) {
+                setCurrentPredictions({ type: 'FeatureCollection', features: remainingFeatures })
+                return
+            } else {
+                setCurrentPredictions(null)
             }
         } else if (event.action === 'clear') {
-            if (map) {
-                removeAllPredictions(map)
-            }
+            setCurrentPredictions(null)
         }
-
         return
     }
 
+    //use Effect to add new predictions that were fetched by react query
     useEffect(() => {
-        if (predictionQueryIsSuccess && map) {
-            addPredictionLayer(map, timestampToFetch!, currentAoiData!.id, predictionQueryData!)
+        if (!predictionQueryData || !predictionQueryIsSuccess || !shouldAddToPredictions) return
+
+        if (currentPredictions && currentPredictions.features.length > 0) {
+            setCurrentPredictions({ type: 'FeatureCollection', features: [...currentPredictions.features, ...predictionQueryData.features] })
+            setShouldAddToPredictions(false)
+        } else {
+            setCurrentPredictions(predictionQueryData)
+            setShouldAddToPredictions(false)
         }
-    }, [predictionQueryIsSuccess, map, predictionQueryData])
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [predictionQueryIsSuccess, predictionQueryData, shouldAddToPredictions])
+
+    //use Effect to update the prediction layer on the map
+    useEffect(() => {
+        if (map) {
+            removeAllPredictions(map)
+            if (currentPredictions && currentAoiId) {
+                addPredictionLayer(map, currentAoiId, currentPredictions)
+            }
+        } else {
+            console.error('map is null')
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPredictions])
 
     useEffect(() => {
         if (aoiQueryIsSuccess && map && mapLoaded) {
             addAoiCentersLayer(map, aoiQueryData!, setCurrentAoiData, setCurrentAoiId)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [aoiQueryIsSuccess, aoiQueryData])
 
     useEffect(() => {
         if (timestampQueryIsSuccess && currentAoiId && currentAoiData) {
             setCurrentAoiData({ ...currentAoiData, timestamps: timestampQueryData })
-            setTimestampToFetch(timestampQueryData[0])
+            setShouldAddToPredictions(true)
+            setPredictionQueryParams({ timestamp: timestampQueryData[0], aoiId: currentAoiId })
             //setIsSidebarOpen(true)
         }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [timestampQueryIsSuccess, currentAoiId, timestampQueryData])
 
     useEffect(() => {
@@ -117,6 +171,11 @@ const MapboxMap: React.FC = () => {
         return () => map.remove()
     }, [])
 
+    useEffect(() => {
+        if (currentAoiMetaDataQueryIsSuccess) {
+            setCurrentAoiMetaData(currentAoiMetaDataQueryData)
+        }
+    }, [currentAoiMetaDataQueryIsSuccess, currentAoiMetaDataQueryData])
     return (
         <div>
             {aoiQueryIsLoading && (
@@ -157,7 +216,7 @@ const MapboxMap: React.FC = () => {
                 </div>
             )}
 
-            {predictionQueryisLoading && (
+            {predictionQueryIsLoading && (
                 <div
                     style={{
                         zIndex: 1000,
@@ -180,9 +239,12 @@ const MapboxMap: React.FC = () => {
                 logo={Logo}
                 isOpen={!!currentAoiId}
                 regionProps={currentAoiData}
+                currentAoiMetaData={currentAoiMetaData}
                 handleSelectedDaysChange={handleDaySelect}
                 handleDeselectAoi={handleDeselectAoi}
                 map={map!}
+                isBusy={predictionQueryIsPending || predictionQueryIsFetching}
+                uniqueSelectedTimestamps={getUniqueSelectedTimestamps()}
             ></TopBanner>
             <div ref={mapContainerRef} className="map-container h-screen"></div>
         </div>

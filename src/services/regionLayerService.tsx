@@ -12,20 +12,53 @@ function capitalizeFirstLetterOfEachWord(input: string): string {
         .join(' ')
 }
 
-function addRegionPopup(map: mapboxgl.Map) {
+function addUnclusteredPointHover(map: mapboxgl.Map) {
     const popup = new mapboxgl.Popup({
         closeButton: false,
         closeOnClick: false,
     })
 
-    map.on('mouseenter', 'regions', (event) => {
+    map.on('mouseenter', 'unclustered-point', (event) => {
         map.getCanvas().style.cursor = 'pointer'
 
-        if (event.features![0].geometry.type === 'Point') {
-            const coordinates = event.features![0].geometry.coordinates.slice() ?? []
-            const name = event.features![0].properties?.name
-            const area = event.features![0].properties?.area_km2
-            const description = `<strong>${capitalizeFirstLetterOfEachWord(name)}</strong><br>Size of the region: ${area.toFixed(2)} km<sup>2</sup>`
+        const feature = event.features![0]
+        if (feature.geometry.type === 'Point') {
+            const coordinates = (feature.geometry as GeoJSON.Point).coordinates.slice()
+            const {
+                name,
+                area_km2: areaSkm,
+                start_date: startDate,
+                end_date: endDate,
+                unique_timestamp_count: uniqueTimestampCount,
+            } = feature.properties!
+
+            const dateOptions: Intl.DateTimeFormatOptions = {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+            }
+            const startDateString = new Date(startDate * 1000).toLocaleString(undefined, dateOptions)
+            const endDateString = new Date(endDate * 1000).toLocaleString(undefined, dateOptions) // Convert to human readable date, with browser timezone
+            const description = `
+            <strong>${capitalizeFirstLetterOfEachWord(name)}</strong>
+            <table>
+                <tr>
+                    <td>Size:</td>
+                    <td><strong>${areaSkm.toFixed(2)} km<sup>2</sup></strong></td>
+                </tr>
+                <tr>
+                    <td>Period:</td>
+                    <td><strong>${startDateString} - ${endDateString}</strong></td>
+                </tr>
+                <tr>
+                    <td>Predicted days:</td>
+                    <td><strong>${uniqueTimestampCount}</strong></td>
+                </tr>
+            </table>
+            <em>Click to see predictions</em>
+            `
 
             while (Math.abs(event.lngLat.lng - coordinates[0]) > 180) {
                 coordinates[0] += event.lngLat.lng > coordinates[0] ? 360 : -360
@@ -33,7 +66,8 @@ function addRegionPopup(map: mapboxgl.Map) {
             popup.setLngLat([coordinates[0], coordinates[1]]).setHTML(description).addTo(map)
         }
     })
-    map.on('mouseleave', 'regions', () => {
+
+    map.on('mouseleave', 'unclustered-point', () => {
         map.getCanvas().style.cursor = ''
         popup.remove()
     })
@@ -45,8 +79,6 @@ export function addAoiCentersLayer(
     stateSetter: (regionData: IRegionData) => void,
     setCurrentAoiId: (aoiId: AoiId) => void,
 ): void {
-    console.log('Adding aoi centers layer', regions)
-
     map.addSource('aoi-centers', {
         type: 'geojson',
         data: regions,
@@ -93,10 +125,9 @@ export function addAoiCentersLayer(
         },
     })
 
-    addRegionPopup(map)
+    addUnclusteredPointHover(map)
 
     map.on('click', 'unclustered-point', async (e) => {
-        // Check if the properties object exists
         if (!e.features || !e.features[0]?.properties) {
             console.error('No properties found')
             return
@@ -106,7 +137,9 @@ export function addAoiCentersLayer(
         const regionName = e.features[0].properties.name
         const regionSize = e.features[0].properties.area_km2
         const regionPolygon: Polygon = JSON.parse(e.features[0].properties.polygon)
+        const bbox = JSON.parse(e.features[0].properties.bbox)
 
+        map.fitBounds(bbox, { padding: 88 })
         hideAoiCenters(map)
         addAoiBboxLayer(map, regionPolygon)
         stateSetter({
@@ -135,6 +168,12 @@ export function addAoiCentersLayer(
             })
         })
     })
+    map.on('mouseenter', 'clusters', (event) => {
+        map.getCanvas().style.cursor = 'pointer'
+    })
+    map.on('mouseleave', 'clusters', () => {
+        map.getCanvas().style.cursor = ''
+    })
 }
 
 export function hideAoiCenters(map: mapboxgl.Map) {
@@ -147,30 +186,4 @@ export function showAoiCenters(map: mapboxgl.Map) {
     map.setLayoutProperty('clusters', 'visibility', 'visible')
     map.setLayoutProperty('cluster-count', 'visibility', 'visible')
     map.setLayoutProperty('unclustered-point', 'visibility', 'visible')
-}
-
-function addClusteredRegionPopup(map: mapboxgl.Map, content: string) {
-    const popup = new mapboxgl.Popup({
-        closeButton: false,
-        closeOnClick: false,
-    })
-
-    map.on('mouseenter', 'clusteredRegions', (event) => {
-        map.getCanvas().style.cursor = 'pointer'
-
-        if (event.features![0].geometry.type === 'Point') {
-            const coordinates = event.features![0].geometry.coordinates.slice() ?? []
-            const name = event.features![0].properties?.name
-            const area = event.features![0].properties?.area_km2
-
-            while (Math.abs(event.lngLat.lng - coordinates[0]) > 180) {
-                coordinates[0] += event.lngLat.lng > coordinates[0] ? 360 : -360
-            }
-            popup.setLngLat([coordinates[0], coordinates[1]]).setHTML(content).addTo(map)
-        }
-    })
-    map.on('mouseleave', 'clusteredRegions', () => {
-        map.getCanvas().style.cursor = ''
-        popup.remove()
-    })
 }
