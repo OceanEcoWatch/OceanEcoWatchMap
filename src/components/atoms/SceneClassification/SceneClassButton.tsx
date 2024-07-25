@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl'
 import React, { useEffect, useState } from 'react'
 import { SCL_COLOR, SCL_NAME } from '../../../interfaces/api/ISCLProperties'
 
-const MapProjectionButton: React.FC<{ className: string; map: mapboxgl.Map; geoData: Geometry[] }> = ({ className, map, geoData }) => {
+export const SclButton: React.FC<{ className: string; map: mapboxgl.Map; geoData: Geometry[] }> = ({ className, map, geoData }) => {
     const [isActive, setIsActive] = useState(false)
 
     function onClick() {
@@ -56,5 +56,3 @@ const MapProjectionButton: React.FC<{ className: string; map: mapboxgl.Map; geoD
         </div>
     )
 }
-
-export default MapProjectionButton

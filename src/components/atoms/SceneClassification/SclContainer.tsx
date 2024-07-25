@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react'
 import { useSclQuery } from './useSclInfo'
 import { FeatureCollection, Geometry, Polygon } from 'geojson'
 import { ISCLProperties } from '../../../interfaces/api/ISCLProperties'
-import SceneClassButton from './SceneClassButton'
+
 import mapboxgl from 'mapbox-gl'
+import { SclButton } from './SceneClassButton'
 
 export const SCLInformationContainer: React.FC<{
     selectedTimestamps: number[]
@@ -56,7 +57,7 @@ export const SCLInformationContainer: React.FC<{
             {selectedTimestamps.length === 1 && mappedObject && (
                 <div>
                     {Object.keys(mappedObject).map((classification) => (
-                        <SceneClassButton key={classification} className={classification} map={map} geoData={mappedObject[classification]} />
+                        <SclButton key={classification} className={classification} map={map} geoData={mappedObject[classification]} />
                     ))}
                 </div>
             )}
