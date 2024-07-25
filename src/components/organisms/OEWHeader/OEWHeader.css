@@ -1,15 +1,10 @@
-:root{
-    --top-bar-height: 70px;
-}
-
-
 #header {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    height: var(--top-bar-height);
-    background-color: var(--black-transparent-background);
+    height: 70px;
+    background-color: rgba(0, 0, 0, 0.7);
     color: white;
     z-index: 100;
     box-shadow: 0px 10px 20px black;
@@ -21,24 +16,12 @@
 }
 
 #sidebar {
-    position: absolute;
-    background-color: var(--black-transparent-background);
+    background-color: rgba(0, 0, 0, 0.7);
+    overflow-y: scroll;
     box-shadow: 0px 20px 20px -10px black;
-    top: var(--top-bar-height);
-    overflow-y: auto;
-    height: calc(100vh - var(--top-bar-height));
+    margin-top: 5px;
+    height: calc(100vh - 70px);
     padding: 10px;
-}
-
-#sidebar::-webkit-scrollbar {
-    height: 12px;
-    width: 3px;
-    background: var(--black-transparent-background);
-}
-
-#sidebar::-webkit-scrollbar-thumb {
-    background: var(--light-gray);
-    -webkit-border-radius: 1ex;
 }
 
 img {
@@ -46,22 +29,34 @@ img {
 }
 
 #info-div {
-    background-color: var(--black-transparent-background);
+    background-color: rgba(55, 65, 81, 0.7);
     color: white;
     z-index: 100;
     backdrop-filter: blur(10px);
     border-radius: 10px;
-    max-width: 450px;
+    max-width: 300px;
 }
 
 p a {
-    color: white;
+    color: #0769da;
     text-decoration: none;
-    font-weight: 900;
     transition: color 0.3s ease;
 }
 
 p a:hover,
 p a:focus {
-    color: var(--light-gray);
+    color: #d1eaff;
+    text-decoration: underline;
 }
+
+/* .basic-multi-select{
+background-color: red;
+}
+
+.select__control{
+background-color: red;
+}
+
+.select__multi-value{
+background-color: blue;
+} */

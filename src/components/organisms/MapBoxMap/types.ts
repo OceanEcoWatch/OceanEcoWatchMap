@@ -9,7 +9,3 @@ export interface IRegionData {
     areaSize: number
     polygon: Polygon
 }
-
-export type CurrentAoiMetaData = {
-    timestampWithSignificantPlastic: number
-}
