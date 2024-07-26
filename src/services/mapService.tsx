@@ -2,7 +2,7 @@ import { FeatureCollection, Point, Polygon } from 'geojson'
 import { IAOICenterProperties } from '../interfaces/api/IAOICenterProperties'
 import { IPredProperties } from '../interfaces/api/IPredProperties'
 import { IAPIRegionDatetimes } from '../interfaces/api/IRegionDatetime'
-import { AoiId, CurrentAoiMetaData } from '../components/organisms/MapBoxMap/types'
+import { AoiId, CurrentAoiMetaData, Model } from '../components/organisms/MapBoxMap/types'
 import { ISCLProperties } from '../interfaces/api/ISCLProperties'
 
 var baseUrl = process.env.REACT_APP_API_URL
@@ -57,7 +57,6 @@ export async function fetchRegionDatetimes(aoiId: AoiId): Promise<number[]> {
         console.error('Error loading region datetimes:', error)
         throw error
     }
-    //   todo use tanstack query
 }
 
 export async function fetchCurrentAoiMetaData(aoiId: number): Promise<CurrentAoiMetaData> {
@@ -80,10 +79,13 @@ export async function fetchCurrentAoiMetaData(aoiId: number): Promise<CurrentAoi
 export async function fetchPredictions(
     datetime: number,
     aoiId: number,
+    model: Model,
     accuracyLimit: number = 33,
 ): Promise<FeatureCollection<Point, IPredProperties>> {
     try {
-        const response = await fetch(`${baseUrl}predictions-by-day-and-aoi?day=${datetime}&aoi_id=${aoiId}&accuracy_limit=${accuracyLimit}`)
+        const response = await fetch(
+            `${baseUrl}predictions-by-day-and-aoi?day=${datetime}&aoi_id=${aoiId}&accuracy_limit=${accuracyLimit}&model_id=${getModelIdByName(model)}`,
+        )
         if (!response.ok) {
             throw new Error('Network response was not ok ' + response.status)
         }
@@ -95,7 +97,12 @@ export async function fetchPredictions(
         console.error('Error loading job predictions:', error)
         throw error
     }
-    //   todo use tanstack query
+}
+const getModelIdByName = (model: Model): string => {
+    console.log('model', model)
+    const modelId = Model.MariNext ? 'oceanecowatch/plasticdetectionmodel:1.0.1' : 'oceanecowatch/marinext:2'
+    console.log('modelId', modelId)
+    return modelId
 }
 
 export async function fetchSceneClassificationInfo(timestamp: number, aoiId: number): Promise<FeatureCollection<Polygon, ISCLProperties>> {
