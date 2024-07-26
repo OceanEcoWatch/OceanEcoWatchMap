@@ -8,7 +8,7 @@ import { addPredictionLayer, removeAllPredictions } from '../../../services/pred
 import { addAoiCentersLayer } from '../../../services/regionLayerService'
 import TopBanner from '../OEWHeader/OEWHeader'
 import './MapboxMap.css'
-import { IRegionData, AoiId, CurrentAoiMetaData } from './types'
+import { IRegionData, AoiId, CurrentAoiMetaData, Model } from './types'
 import { useQuery } from '@tanstack/react-query'
 import { ActionMeta } from 'react-select'
 import { IDayOption } from '../../../interfaces/IDayOption'
@@ -20,15 +20,16 @@ import { getBeginningOfUTCDay } from '../../../common/utils'
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY!
 
 const MapboxMap: React.FC = () => {
-    const [predictionQueryParams, setPredictionQueryParams] = useState<{ timestamp: number; aoiId: number } | undefined>(undefined)
+    const [predictionQueryParams, setPredictionQueryParams] = useState<{ timestamp: number; aoiId: number; model: Model } | undefined>(undefined)
     const [shouldAddToPredictions, setShouldAddToPredictions] = useState<boolean>(false)
+    const [model, setModel] = useState<Model>(Model.Marida)
     const {
         isPending: predictionQueryIsPending,
         isFetching: predictionQueryIsFetching,
         isSuccess: predictionQueryIsSuccess,
         data: predictionQueryData,
         isLoading: predictionQueryIsLoading,
-    } = usePredictionQuery(predictionQueryParams?.timestamp, predictionQueryParams?.aoiId!)
+    } = usePredictionQuery(predictionQueryParams?.timestamp, predictionQueryParams?.aoiId!, predictionQueryParams?.model)
 
     const mapContainerRef = useRef<HTMLDivElement>(null)
     const [map, setMap] = useState<mapboxgl.Map | null>(null)
@@ -94,7 +95,7 @@ const MapboxMap: React.FC = () => {
     async function handleDaySelect(event: ActionMeta<IDayOption>) {
         if (event.action === 'select-option') {
             //set the timestamp to fetch the prediction
-            setPredictionQueryParams({ timestamp: event.option!.value!, aoiId: currentAoiId! })
+            setPredictionQueryParams({ timestamp: event.option!.value!, aoiId: currentAoiId!, model: model })
             setShouldAddToPredictions(true)
         } else if (event.action === 'remove-value') {
             const timestampToRemove = event.removedValue.value
@@ -118,6 +119,11 @@ const MapboxMap: React.FC = () => {
         }
         return
     }
+    useEffect(() => {
+        setPredictionQueryParams({ ...predictionQueryParams!, model: model })
+        setShouldAddToPredictions(true)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [model])
 
     //use Effect to add new predictions that were fetched by react query
     useEffect(() => {
@@ -141,8 +147,6 @@ const MapboxMap: React.FC = () => {
             if (currentPredictions && currentAoiId) {
                 addPredictionLayer(map, currentAoiId, currentPredictions)
             }
-        } else {
-            console.error('map is null')
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPredictions])
@@ -158,7 +162,7 @@ const MapboxMap: React.FC = () => {
         if (timestampQueryIsSuccess && currentAoiId && currentAoiData) {
             setCurrentAoiData({ ...currentAoiData, timestamps: timestampQueryData })
             setShouldAddToPredictions(true)
-            setPredictionQueryParams({ timestamp: timestampQueryData[0], aoiId: currentAoiId })
+            setPredictionQueryParams({ timestamp: timestampQueryData[0], aoiId: currentAoiId, model: model })
             //setIsSidebarOpen(true)
         }
 
@@ -245,6 +249,8 @@ const MapboxMap: React.FC = () => {
                 map={map!}
                 isBusy={predictionQueryIsPending || predictionQueryIsFetching}
                 uniqueSelectedTimestamps={getUniqueSelectedTimestamps()}
+                model={model}
+                setModel={setModel}
             ></TopBanner>
             <div ref={mapContainerRef} className="map-container h-screen"></div>
         </div>
