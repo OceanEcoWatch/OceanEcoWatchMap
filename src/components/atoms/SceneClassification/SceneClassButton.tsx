@@ -37,7 +37,7 @@ export const SclButton: React.FC<{ className: string; map: mapboxgl.Map; geoData
                     source: `scl-layer-${className}`,
                     paint: {
                         'fill-color': SCL_COLOR[className as keyof typeof SCL_COLOR],
-                        'fill-opacity': 0.5, // Set the opacity value here (0.0 - 1.0)
+                        'fill-opacity': 0.1, // Set the opacity value here (0.0 - 1.0)
                     },
                 })
             } else {
