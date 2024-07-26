@@ -13,3 +13,8 @@ export interface IRegionData {
 export type CurrentAoiMetaData = {
     timestampWithSignificantPlastic: number
 }
+
+export enum Model {
+    'Marida' = 'Marida',
+    'MariNext' = 'MariNext',
+}
