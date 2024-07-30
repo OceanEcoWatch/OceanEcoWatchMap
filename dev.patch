@@ -1,0 +1,1414 @@
+diff --git a/LICENSE b/LICENSE
+deleted file mode 100644
+index fb78a66..0000000
+--- a/LICENSE
++++ /dev/null
+@@ -1,21 +0,0 @@
+-MIT License
+-
+-Copyright (c) 2024 OceanEcoWatch
+-
+-Permission is hereby granted, free of charge, to any person obtaining a copy
+-of this software and associated documentation files (the "Software"), to deal
+-in the Software without restriction, including without limitation the rights
+-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+-copies of the Software, and to permit persons to whom the Software is
+-furnished to do so, subject to the following conditions:
+-
+-The above copyright notice and this permission notice shall be included in all
+-copies or substantial portions of the Software.
+-
+-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+-SOFTWARE.
+diff --git a/README.md b/README.md
+index b87cb00..5847e00 100644
+--- a/README.md
++++ b/README.md
+@@ -1,11 +1,26 @@
+-# Getting Started with Create React App
++# Ocean Eco Watch Map
+ 
+-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
++Welcome to the Ocean Eco Watch Map repository! This repository contains the frontend mapping application of Ocean Eco Watch. All plastic predictions are visualized on a map to make the data accessible and easy to use for everyone.
+ 
+-## Available Scripts
++The mapping application fetches data from our [Map Server](https://github.com/OceanEcoWatch/OceanEcoMapServer), providing all data via an API.
++
++The application is deployed here: [Ocean Eco Watch Map](https://map.oceanecowatch.org/)
++
++## Technologies
++
++-   **React**: Frontend framework
++-   **TypeScript**: Programming language
++-   **Mapbox**: Mapping library
++-   **TanStack Query**: State management library
++
++## Get Started
+ 
+ In the project directory, you can run:
+ 
++### `npm install`
++
++Installs all dependencies from the package.lock file.
++
+ ### `npm start`
+ 
+ Runs the app in the development mode.\
+@@ -14,11 +29,6 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+ The page will reload if you make edits.\
+ You will also see any lint errors in the console.
+ 
+-### `npm test`
+-
+-Launches the test runner in the interactive watch mode.\
+-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+-
+ ### `npm run build`
+ 
+ Builds the app for production to the `build` folder.\
+@@ -27,20 +37,8 @@ It correctly bundles React in production mode and optimizes the build for the be
+ The build is minified and the filenames include the hashes.\
+ Your app is ready to be deployed!
+ 
+-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+-
+-### `npm run eject`
+-
+-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+-
+-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+-
+-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+-
+-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+-
+-## Learn More
++## Deployement
+ 
+-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
++We have set up a build and deployment pipeline on AWS that is automatically triggered on every push to the main branch.
+ 
+-To learn React, check out the [React documentation](https://reactjs.org/).
++The application is doployed here: [https://map.oceanecowatch.org/](https://map.oceanecowatch.org/)
+diff --git a/src/common/utils.tsx b/src/common/utils.tsx
+index 49d87fd..2160c7b 100644
+--- a/src/common/utils.tsx
++++ b/src/common/utils.tsx
+@@ -3,14 +3,24 @@ type ColorCoding = {
+ }
+ 
+ export const colorCoding: ColorCoding = {
+-    10: '#ffeda0',
+-    20: '#fed976',
+-    30: '#feb24c',
+-    40: '#fd8d3c',
+-    50: '#fc4e2a',
+-    60: '#e31a1c',
+-    70: '#bd0026',
+-    80: '#800026',
+-    90: '#660026',
+-    100: '#3d0404',
++    10: 'rgba(255, 237, 160, 0.8)',
++    20: 'rgba(254, 217, 118, 0.8)',
++    30: 'rgba(254, 178, 76, 0.8)',
++    40: 'rgba(253, 141, 60, 0.8)',
++    50: 'rgba(252, 78, 42, 0.8)',
++    60: 'rgba(227, 26, 28, 0.8)',
++    70: 'rgba(189, 0, 38, 0.8)',
++    80: 'rgba(128, 0, 38, 0.8)',
++    90: 'rgba(102, 0, 38, 0.8)',
++    100: 'rgba(61, 4, 4, 0.8)',
++}
++
++export const getBeginningOfUTCDay = (timestamp: number) => {
++    // Given timestamp
++    timestamp = timestamp * 1000 // Convert to milliseconds
++    const date = new Date(timestamp)
++    // Reset the time components to get the start of the UTC day
++    date.setUTCHours(0, 0, 0, 0)
++    // Get the new timestamp (in milliseconds) and convert to seconds
++    return Math.floor(date.getTime() / 1000)
+ }
+diff --git a/src/components/atoms/AreaDetails/AreaDetails.tsx b/src/components/atoms/AreaDetails/AreaDetails.tsx
+index cfc82c6..6828746 100644
+--- a/src/components/atoms/AreaDetails/AreaDetails.tsx
++++ b/src/components/atoms/AreaDetails/AreaDetails.tsx
+@@ -6,9 +6,16 @@ interface AreaDetailsProps {
+     firstAnalysis: number
+     lastAnalysis: number
+     timestampsCount: number
++    timestampWithSignificantPlastic?: number
+ }
+ 
+-export const AreaDetails: React.FC<AreaDetailsProps> = ({ areaSize, firstAnalysis, lastAnalysis, timestampsCount: timestepsCount }) => {
++export const AreaDetails: React.FC<AreaDetailsProps> = ({
++    areaSize,
++    firstAnalysis,
++    lastAnalysis,
++    timestampsCount,
++    timestampWithSignificantPlastic,
++}) => {
+     return (
+         <div className="text-center text-sm">
+             <table>
+@@ -43,8 +50,16 @@ export const AreaDetails: React.FC<AreaDetailsProps> = ({ areaSize, firstAnalysi
+                         <td>
+                             <p>Amount of timestamps:</p>
+                         </td>
+-                        <td>{timestepsCount}</td>
++                        <td>{timestampsCount}</td>
+                     </tr>
++                    {timestampWithSignificantPlastic && (
++                        <tr>
++                            <td>
++                                <p>Number of days without plastic found:</p>
++                            </td>
++                            <td>{timestampsCount - timestampWithSignificantPlastic}</td>
++                        </tr>
++                    )}
+                 </tbody>
+             </table>
+         </div>
+diff --git a/src/components/atoms/BackButton/BackButton.tsx b/src/components/atoms/BackButton/BackButton.tsx
+index f2d2eaf..e2936a5 100644
+--- a/src/components/atoms/BackButton/BackButton.tsx
++++ b/src/components/atoms/BackButton/BackButton.tsx
+@@ -1,9 +1,9 @@
+ import mapboxgl from 'mapbox-gl'
+ import React from 'react'
+-import './BackButton.css'
++import { removeAoiBboxLayer } from '../../../services/aoiBboxLayerService'
+ import { removeAllPredictions } from '../../../services/predictionLayerService'
+ import { showAoiCenters } from '../../../services/regionLayerService'
+-import { removeAoiBboxLayer } from '../../../services/aoiBboxLayerService'
++import './BackButton.css'
+ 
+ export const BackButton: React.FC<{ map: mapboxgl.Map; handleDeselectAoi: () => void }> = ({ map, handleDeselectAoi }) => {
+     function handleGoBack() {
+@@ -12,10 +12,8 @@ export const BackButton: React.FC<{ map: mapboxgl.Map; handleDeselectAoi: () =>
+         showAoiCenters(map)
+         handleDeselectAoi()
+ 
+-        const currentCenter = map.getCenter()
+         map.flyTo({
+-            center: currentCenter,
+-            zoom: 10,
++            zoom: 1.7,
+             essential: true,
+             speed: 1.7,
+         })
+diff --git a/src/components/atoms/ModelButtons/ModelButtons.tsx b/src/components/atoms/ModelButtons/ModelButtons.tsx
+new file mode 100644
+index 0000000..fe23f4f
+--- /dev/null
++++ b/src/components/atoms/ModelButtons/ModelButtons.tsx
+@@ -0,0 +1,27 @@
++import { Model } from '../../organisms/MapBoxMap/types'
++
++export const ModelButtons: React.FC<{ model: Model; setModel: (model: Model) => void }> = ({ model, setModel }) => {
++    const buttonClassName = 'flex items-center justify-center text-white text-xs py-2 px-4 rounded shadow-lg'
++    const disabledButtonClassName = 'bg-gray-800'
++    const enabledButtonClassName = 'bg-gray-500'
++
++    return (
++        <div className="flex align-middle">
++            <button
++                className={`${buttonClassName} ${model === Model.MariNext ? disabledButtonClassName : enabledButtonClassName}`}
++                disabled={model === Model.Marida}
++                onClick={() => setModel(Model.Marida)}
++            >
++                {Model.Marida}
++            </button>
++
++            <button
++                className={`${buttonClassName} ${model === Model.Marida ? disabledButtonClassName : enabledButtonClassName}`}
++                disabled={model === Model.MariNext}
++                onClick={() => setModel(Model.MariNext)}
++            >
++                {Model.MariNext}
++            </button>
++        </div>
++    )
++}
+diff --git a/src/components/atoms/ProbabilityFilter/ProbabilityFilter.tsx b/src/components/atoms/ProbabilityFilter/ProbabilityFilter.tsx
+new file mode 100644
+index 0000000..5289f9f
+--- /dev/null
++++ b/src/components/atoms/ProbabilityFilter/ProbabilityFilter.tsx
+@@ -0,0 +1,47 @@
++import { useEffect, useState } from 'react'
++
++export const ProbabilityFilter: React.FC<{ map: mapboxgl.Map; aoiId: number }> = ({ map, aoiId }) => {
++    const [currentProbability, setCurrentProbability] = useState(30)
++
++    function handleProbabilityChange(e: React.ChangeEvent<HTMLInputElement>) {
++        setCurrentProbability(parseInt(e.target.value))
++    }
++
++    useEffect(() => {
++        //Set filter for heatmap and prediction layer
++        if (map.getLayer(`prediction-${aoiId}-heatmap`)) {
++            map.setFilter(`prediction-${aoiId}-heatmap`, ['>', ['get', 'pixelValue'], currentProbability])
++        }
++        if (map.getLayer(`prediction-${aoiId}-point`)) {
++            map.setFilter(`prediction-${aoiId}-point`, ['>', ['get', 'pixelValue'], currentProbability])
++        }
++
++        return () => {
++            // cleanup function (removing all filters when component unmounts)
++            if (map.getLayer(`prediction-${aoiId}-heatmap`)) {
++                map.setFilter(`prediction-${aoiId}-heatmap`, null)
++            }
++            if (map.getLayer(`prediction-${aoiId}-point`)) {
++                map.setFilter(`prediction-${aoiId}-point`, null)
++            }
++        }
++    }, [aoiId, currentProbability, map])
++
++    return (
++        <div id="">
++            <div className="font-bold text-sm my-5 text-left">Probability Filter</div>
++            <div className="flex justify-between w-full">
++                <input
++                    id="probability-slider"
++                    value={currentProbability}
++                    min="30"
++                    max="100"
++                    type="range"
++                    onChange={(e) => handleProbabilityChange(e)}
++                ></input>
++
++                <span className="font-bold">{currentProbability}%</span>
++            </div>
++        </div>
++    )
++}
+diff --git a/src/components/atoms/SceneClassification/SceneClassButton.tsx b/src/components/atoms/SceneClassification/SceneClassButton.tsx
+new file mode 100644
+index 0000000..921edde
+--- /dev/null
++++ b/src/components/atoms/SceneClassification/SceneClassButton.tsx
+@@ -0,0 +1,58 @@
++import { FeatureCollection, GeoJsonProperties, Geometry, Polygon } from 'geojson'
++import mapboxgl from 'mapbox-gl'
++import React, { useEffect, useState } from 'react'
++import { SCL_COLOR, SCL_NAME } from '../../../interfaces/api/ISCLProperties'
++
++export const SclButton: React.FC<{ className: string; map: mapboxgl.Map; geoData: Geometry[] }> = ({ className, map, geoData }) => {
++    const [isActive, setIsActive] = useState(false)
++
++    function onClick() {
++        setIsActive(!isActive)
++    }
++
++    useEffect(() => {
++        displayFunction(isActive) // add layer to show the polygon fo the class / remove layer to hide the polygon
++        return () => {
++            displayFunction(false) // remove layer when component is unmounted (useEffect cleanup)
++        }
++        function displayFunction(shouldShow: boolean) {
++            if (shouldShow) {
++                const featureCollection: FeatureCollection<Polygon, GeoJsonProperties> = {
++                    type: 'FeatureCollection',
++                    features: geoData.map((geometry) => ({
++                        type: 'Feature',
++                        geometry: geometry as Polygon,
++                        properties: {},
++                    })),
++                }
++
++                map.addSource(`scl-layer-${className}`, {
++                    type: 'geojson',
++                    data: featureCollection,
++                })
++
++                map.addLayer({
++                    id: `scl-layer-${className}`,
++                    type: 'fill',
++                    source: `scl-layer-${className}`,
++                    paint: {
++                        'fill-color': SCL_COLOR[className as keyof typeof SCL_COLOR],
++                        'fill-opacity': 0.1, // Set the opacity value here (0.0 - 1.0)
++                    },
++                })
++            } else {
++                if (map.getLayer(`scl-layer-${className}`)) {
++                    //remove if layer exists
++                    map.removeLayer(`scl-layer-${className}`)
++                    map.removeSource(`scl-layer-${className}`)
++                }
++            }
++        }
++    }, [className, geoData, isActive, map])
++
++    return (
++        <div>
++            <button onClick={onClick}>{SCL_NAME[className as keyof typeof SCL_NAME]}</button>
++        </div>
++    )
++}
+diff --git a/src/components/atoms/SceneClassification/SclContainer.tsx b/src/components/atoms/SceneClassification/SclContainer.tsx
+new file mode 100644
+index 0000000..cbab6ae
+--- /dev/null
++++ b/src/components/atoms/SceneClassification/SclContainer.tsx
+@@ -0,0 +1,66 @@
++import React, { useEffect, useState } from 'react'
++import { useSclQuery } from './useSclInfo'
++import { FeatureCollection, Geometry, Polygon } from 'geojson'
++import { ISCLProperties } from '../../../interfaces/api/ISCLProperties'
++
++import mapboxgl from 'mapbox-gl'
++import { SclButton } from './SceneClassButton'
++
++export const SCLInformationContainer: React.FC<{
++    selectedTimestamps: number[]
++    currentAoiId: number
++    map: mapboxgl.Map
++}> = ({ selectedTimestamps, currentAoiId, map }) => {
++    const [useSclQueryParams, setUseSclQueryParams] = useState<{ selectedTimestamps: number; currentAoiId: number } | undefined>(undefined)
++    const { isPending, isSuccess, data, isLoading } = useSclQuery(useSclQueryParams?.selectedTimestamps, useSclQueryParams?.currentAoiId)
++    const [mappedObject, setMappedObject] = useState<MappedObject | null>(null)
++    useEffect(() => {
++        if (selectedTimestamps.length === 1) {
++            setUseSclQueryParams({ selectedTimestamps: selectedTimestamps[0], currentAoiId: currentAoiId })
++        }
++    }, [selectedTimestamps, currentAoiId])
++
++    useEffect(() => {
++        if (isSuccess && data.features) {
++            setMappedObject(mapFeaturesDynamically(data))
++        }
++
++        function mapFeaturesDynamically(source: FeatureCollection<Polygon, ISCLProperties>): MappedObject {
++            const result: MappedObject = {}
++
++            source.features.forEach((feature) => {
++                const classification = feature.properties.classification
++
++                // Initialize array for new classifications
++                if (!result[classification]) {
++                    result[classification] = []
++                }
++
++                // Add the geometry to the appropriate classification
++                result[classification].push(feature.geometry)
++            })
++
++            return result
++        }
++    }, [data, isSuccess])
++
++    interface MappedObject {
++        [key: string]: Geometry[]
++    }
++
++    return (
++        <div>
++            {selectedTimestamps.length > 1 && <p>Select only one timestamp to request scene classification data</p>}
++            {selectedTimestamps.length < 1 && <p>Select one timestamp to request scene classification data</p>}
++            {selectedTimestamps.length === 1 && (isPending || isLoading) && <p>Loading...</p>}
++            {selectedTimestamps.length === 1 && !mappedObject && <p>Sorry! We have no scene information for this timestamp...</p>}
++            {selectedTimestamps.length === 1 && mappedObject && (
++                <div>
++                    {Object.keys(mappedObject).map((classification) => (
++                        <SclButton key={classification} className={classification} map={map} geoData={mappedObject[classification]} />
++                    ))}
++                </div>
++            )}
++        </div>
++    )
++}
+diff --git a/src/components/atoms/SceneClassification/useSclInfo.tsx b/src/components/atoms/SceneClassification/useSclInfo.tsx
+new file mode 100644
+index 0000000..485bf5b
+--- /dev/null
++++ b/src/components/atoms/SceneClassification/useSclInfo.tsx
+@@ -0,0 +1,12 @@
++import { useQuery } from '@tanstack/react-query'
++import { fetchSceneClassificationInfo } from '../../../services/mapService'
++
++export const useSclQuery = (timestampToFetch: number | undefined, currentAoiId: number | undefined) => {
++    return useQuery({
++        queryKey: ['sceneClassification', timestampToFetch, currentAoiId],
++        queryFn: async () => await fetchSceneClassificationInfo(timestampToFetch!, currentAoiId!),
++        staleTime: Infinity, // Data never becomes stale
++        refetchOnWindowFocus: false, // Do not refetch on window focus
++        enabled: Boolean(timestampToFetch && currentAoiId),
++    })
++}
+diff --git a/src/components/molecules/DaySelect/DaySelect.tsx b/src/components/molecules/DaySelect/DaySelect.tsx
+index c494637..7feffca 100644
+--- a/src/components/molecules/DaySelect/DaySelect.tsx
++++ b/src/components/molecules/DaySelect/DaySelect.tsx
+@@ -5,11 +5,13 @@ import { IDayOption } from '../../../interfaces/IDayOption'
+ interface DaySelectProps {
+     days: IDayOption[]
+     handleSelectedDaysChange: (event: ActionMeta<IDayOption>) => void
++    isBusy: boolean
+ }
+ 
+-const DaySelect: React.FC<DaySelectProps> = ({ days, handleSelectedDaysChange }) => {
++const DaySelect: React.FC<DaySelectProps> = ({ days, handleSelectedDaysChange, isBusy }) => {
+     return (
+         <Select
++            isDisabled={isBusy}
+             defaultValue={days[0]}
+             isMulti
+             name="days"
+diff --git a/src/components/organisms/MapBoxMap/MapboxMap.tsx b/src/components/organisms/MapBoxMap/MapboxMap.tsx
+index f2c255f..9a9f955 100644
+--- a/src/components/organisms/MapBoxMap/MapboxMap.tsx
++++ b/src/components/organisms/MapBoxMap/MapboxMap.tsx
+@@ -2,43 +2,55 @@ import mapboxgl from 'mapbox-gl'
+ import 'mapbox-gl/dist/mapbox-gl.css'
+ import React, { useEffect, useRef, useState } from 'react'
+ import Logo from '../../../assets/logo.png'
+-import { fetchRegionDatetimes, fetchAoiCenters, fetchPredictions } from '../../../services/mapService'
++import { fetchRegionDatetimes, fetchAoiCenters, fetchCurrentAoiMetaData } from '../../../services/mapService'
+ import { initMap } from '../../../services/mapboxService'
+-import { addPredictionLayer, removeAllPredictions, removePredictionById } from '../../../services/predictionLayerService'
++import { addPredictionLayer, removeAllPredictions } from '../../../services/predictionLayerService'
+ import { addAoiCentersLayer } from '../../../services/regionLayerService'
+ import TopBanner from '../OEWHeader/OEWHeader'
+ import './MapboxMap.css'
+-import { IRegionData, AoiId } from './types'
++import { IRegionData, AoiId, CurrentAoiMetaData, Model } from './types'
+ import { useQuery } from '@tanstack/react-query'
+ import { ActionMeta } from 'react-select'
+ import { IDayOption } from '../../../interfaces/IDayOption'
++import { FeatureCollection, Point } from 'geojson'
++import { IPredProperties } from '../../../interfaces/api/IPredProperties'
++import { usePredictionQuery } from '../usePredictionQuery'
++import { getBeginningOfUTCDay } from '../../../common/utils'
+ 
+ mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY!
+ 
+ const MapboxMap: React.FC = () => {
++    const [predictionQueryParams, setPredictionQueryParams] = useState<{ timestamp: number; aoiId: number; model: Model } | undefined>(undefined)
++    const [shouldAddToPredictions, setShouldAddToPredictions] = useState<boolean>(false)
++    const [model, setModel] = useState<Model>(Model.Marida)
++    const {
++        isPending: predictionQueryIsPending,
++        isFetching: predictionQueryIsFetching,
++        isSuccess: predictionQueryIsSuccess,
++        data: predictionQueryData,
++        isLoading: predictionQueryIsLoading,
++    } = usePredictionQuery(predictionQueryParams?.timestamp, predictionQueryParams?.aoiId!, predictionQueryParams?.model)
++
+     const mapContainerRef = useRef<HTMLDivElement>(null)
+     const [map, setMap] = useState<mapboxgl.Map | null>(null)
+-    const [timestampToFetch, setTimestampToFetch] = useState<null | number>(null)
+ 
+     const [currentAoiId, setCurrentAoiId] = useState<AoiId>(null)
+     const [currentAoiData, setCurrentAoiData] = useState<null | IRegionData>(null)
+     const [mapLoaded, setMapLoaded] = useState(false)
++    const [currentAoiMetaData, setCurrentAoiMetaData] = useState<null | CurrentAoiMetaData>(null)
++    const [currentPredictions, setCurrentPredictions] = useState<null | FeatureCollection<Point, IPredProperties>>(null)
+ 
+-    const {
+-        isLoading: predictionQueryisLoading,
+-        isSuccess: predictionQueryIsSuccess,
+-        data: predictionQueryData,
+-    } = useQuery({
+-        queryKey: timestampToFetch && currentAoiData && currentAoiData.id ? ['prediction', timestampToFetch, currentAoiData.id] : ['no-query'],
+-        queryFn: async () => {
+-            if (timestampToFetch && currentAoiData && currentAoiData.id) {
+-                return await fetchPredictions(timestampToFetch, currentAoiData.id)
++    const getUniqueSelectedTimestamps = (): number[] => {
++        const uniqueCurrentTimestamps: number[] = []
++        if (currentPredictions && currentPredictions.features) {
++            for (const feature of currentPredictions.features) {
++                if (!uniqueCurrentTimestamps.includes(feature.properties.timestamp)) {
++                    uniqueCurrentTimestamps.push(feature.properties.timestamp)
++                }
+             }
+-            return null
+-        },
+-        enabled: Boolean(timestampToFetch && currentAoiData && currentAoiData.id),
+-    })
+-
++        }
++        return uniqueCurrentTimestamps
++    }
+     const {
+         isLoading: timestampQueryisLoading,
+         isSuccess: timestampQueryIsSuccess,
+@@ -63,52 +75,98 @@ const MapboxMap: React.FC = () => {
+         refetchOnWindowFocus: false,
+     })
+ 
+-    // const openSidebar = () => {
+-    //     setIsSidebarOpen(!isSidebarOpen)
+-    // }
++    const {
++        isLoading: currentAoiMetaDataQueryisLoading,
++        isSuccess: currentAoiMetaDataQueryIsSuccess,
++        data: currentAoiMetaDataQueryData,
++    } = useQuery({
++        queryFn: async () => await fetchCurrentAoiMetaData(currentAoiId!),
++        enabled: Boolean(currentAoiId),
++        queryKey: ['currentAoiMetaData', currentAoiId],
++        refetchOnWindowFocus: false,
++    })
+ 
+     function handleDeselectAoi() {
+         setCurrentAoiId(null)
+         setCurrentAoiData(null)
+-        setTimestampToFetch(null)
++        setCurrentPredictions(null)
+     }
+ 
+-    function handleDaySelect(event: ActionMeta<IDayOption>) {
++    async function handleDaySelect(event: ActionMeta<IDayOption>) {
+         if (event.action === 'select-option') {
+-            if (event.option?.value) {
+-                setTimestampToFetch(event.option.value)
+-            }
++            //set the timestamp to fetch the prediction
++            setPredictionQueryParams({ timestamp: event.option!.value!, aoiId: currentAoiId!, model: model })
++            setShouldAddToPredictions(true)
+         } else if (event.action === 'remove-value') {
+-            if (event.removedValue?.value && currentAoiId) {
+-                removePredictionById(map!, event.removedValue.value, currentAoiId)
++            const timestampToRemove = event.removedValue.value
++            //filter out the removed value from the feature collection currentPredictions
++            if (!currentPredictions || !currentPredictions?.features) {
++                setCurrentPredictions(null)
++                return
+             }
+-        } else if (event.action === 'clear') {
+-            if (map) {
+-                removeAllPredictions(map)
++
++            const remainingFeatures = currentPredictions!.features.filter(
++                (feature) => getBeginningOfUTCDay(feature.properties.timestamp) !== timestampToRemove,
++            )
++            if (remainingFeatures.length! > 0) {
++                setCurrentPredictions({ type: 'FeatureCollection', features: remainingFeatures })
++                return
++            } else {
++                setCurrentPredictions(null)
+             }
++        } else if (event.action === 'clear') {
++            setCurrentPredictions(null)
+         }
+-
+         return
+     }
++    useEffect(() => {
++        setPredictionQueryParams({ ...predictionQueryParams!, model: model })
++        setShouldAddToPredictions(true)
++        // eslint-disable-next-line react-hooks/exhaustive-deps
++    }, [model])
+ 
++    //use Effect to add new predictions that were fetched by react query
+     useEffect(() => {
+-        if (predictionQueryIsSuccess && map) {
+-            addPredictionLayer(map, timestampToFetch!, currentAoiData!.id, predictionQueryData!)
++        if (!predictionQueryData || !predictionQueryIsSuccess || !shouldAddToPredictions) return
++
++        if (currentPredictions && currentPredictions.features.length > 0) {
++            setCurrentPredictions({ type: 'FeatureCollection', features: [...currentPredictions.features, ...predictionQueryData.features] })
++            setShouldAddToPredictions(false)
++        } else {
++            setCurrentPredictions(predictionQueryData)
++            setShouldAddToPredictions(false)
+         }
+-    }, [predictionQueryIsSuccess, map, predictionQueryData])
++
++        // eslint-disable-next-line react-hooks/exhaustive-deps
++    }, [predictionQueryIsSuccess, predictionQueryData, shouldAddToPredictions])
++
++    //use Effect to update the prediction layer on the map
++    useEffect(() => {
++        if (map) {
++            removeAllPredictions(map)
++            if (currentPredictions && currentAoiId) {
++                addPredictionLayer(map, currentAoiId, currentPredictions)
++            }
++        }
++        // eslint-disable-next-line react-hooks/exhaustive-deps
++    }, [currentPredictions])
+ 
+     useEffect(() => {
+         if (aoiQueryIsSuccess && map && mapLoaded) {
+             addAoiCentersLayer(map, aoiQueryData!, setCurrentAoiData, setCurrentAoiId)
+         }
++        // eslint-disable-next-line react-hooks/exhaustive-deps
+     }, [aoiQueryIsSuccess, aoiQueryData])
+ 
+     useEffect(() => {
+         if (timestampQueryIsSuccess && currentAoiId && currentAoiData) {
+             setCurrentAoiData({ ...currentAoiData, timestamps: timestampQueryData })
+-            setTimestampToFetch(timestampQueryData[0])
++            setShouldAddToPredictions(true)
++            setPredictionQueryParams({ timestamp: timestampQueryData[0], aoiId: currentAoiId, model: model })
+             //setIsSidebarOpen(true)
+         }
++
++        // eslint-disable-next-line react-hooks/exhaustive-deps
+     }, [timestampQueryIsSuccess, currentAoiId, timestampQueryData])
+ 
+     useEffect(() => {
+@@ -117,6 +175,11 @@ const MapboxMap: React.FC = () => {
+         return () => map.remove()
+     }, [])
+ 
++    useEffect(() => {
++        if (currentAoiMetaDataQueryIsSuccess) {
++            setCurrentAoiMetaData(currentAoiMetaDataQueryData)
++        }
++    }, [currentAoiMetaDataQueryIsSuccess, currentAoiMetaDataQueryData])
+     return (
+         <div>
+             {aoiQueryIsLoading && (
+@@ -157,7 +220,7 @@ const MapboxMap: React.FC = () => {
+                 </div>
+             )}
+ 
+-            {predictionQueryisLoading && (
++            {predictionQueryIsLoading && (
+                 <div
+                     style={{
+                         zIndex: 1000,
+@@ -180,9 +243,14 @@ const MapboxMap: React.FC = () => {
+                 logo={Logo}
+                 isOpen={!!currentAoiId}
+                 regionProps={currentAoiData}
++                currentAoiMetaData={currentAoiMetaData}
+                 handleSelectedDaysChange={handleDaySelect}
+                 handleDeselectAoi={handleDeselectAoi}
+                 map={map!}
++                isBusy={predictionQueryIsPending || predictionQueryIsFetching}
++                uniqueSelectedTimestamps={getUniqueSelectedTimestamps()}
++                model={model}
++                setModel={setModel}
+             ></TopBanner>
+             <div ref={mapContainerRef} className="map-container h-screen"></div>
+         </div>
+diff --git a/src/components/organisms/MapBoxMap/types.ts b/src/components/organisms/MapBoxMap/types.ts
+index 37a79d2..939680c 100644
+--- a/src/components/organisms/MapBoxMap/types.ts
++++ b/src/components/organisms/MapBoxMap/types.ts
+@@ -9,3 +9,12 @@ export interface IRegionData {
+     areaSize: number
+     polygon: Polygon
+ }
++
++export type CurrentAoiMetaData = {
++    timestampWithSignificantPlastic: number
++}
++
++export enum Model {
++    'Marida' = 'Marida',
++    'MariNext' = 'MariNext',
++}
+diff --git a/src/components/organisms/OEWHeader/OEWHeader.css b/src/components/organisms/OEWHeader/OEWHeader.css
+index f0937c1..8236fdb 100644
+--- a/src/components/organisms/OEWHeader/OEWHeader.css
++++ b/src/components/organisms/OEWHeader/OEWHeader.css
+@@ -1,10 +1,15 @@
++:root{
++    --top-bar-height: 70px;
++}
++
++
+ #header {
+     position: absolute;
+     top: 0;
+     left: 0;
+     width: 100%;
+-    height: 70px;
+-    background-color: rgba(0, 0, 0, 0.7);
++    height: var(--top-bar-height);
++    background-color: var(--black-transparent-background);
+     color: white;
+     z-index: 100;
+     box-shadow: 0px 10px 20px black;
+@@ -16,47 +21,47 @@
+ }
+ 
+ #sidebar {
+-    background-color: rgba(0, 0, 0, 0.7);
+-    overflow-y: scroll;
++    position: absolute;
++    background-color: var(--black-transparent-background);
+     box-shadow: 0px 20px 20px -10px black;
+-    margin-top: 5px;
+-    height: calc(100vh - 70px);
++    top: var(--top-bar-height);
++    overflow-y: auto;
++    height: calc(100vh - var(--top-bar-height));
+     padding: 10px;
+ }
+ 
++#sidebar::-webkit-scrollbar {
++    height: 12px;
++    width: 3px;
++    background: var(--black-transparent-background);
++}
++
++#sidebar::-webkit-scrollbar-thumb {
++    background: var(--light-gray);
++    -webkit-border-radius: 1ex;
++}
++
+ img {
+     border-radius: 50px;
+ }
+ 
+ #info-div {
+-    background-color: rgba(55, 65, 81, 0.7);
++    background-color: var(--black-transparent-background);
+     color: white;
+     z-index: 100;
+     backdrop-filter: blur(10px);
+     border-radius: 10px;
+-    max-width: 300px;
++    max-width: 450px;
+ }
+ 
+ p a {
+-    color: #0769da;
++    color: white;
+     text-decoration: none;
++    font-weight: 900;
+     transition: color 0.3s ease;
+ }
+ 
+ p a:hover,
+ p a:focus {
+-    color: #d1eaff;
+-    text-decoration: underline;
+-}
+-
+-/* .basic-multi-select{
+-background-color: red;
++    color: var(--light-gray);
+ }
+-
+-.select__control{
+-background-color: red;
+-}
+-
+-.select__multi-value{
+-background-color: blue;
+-} */
+diff --git a/src/components/organisms/OEWHeader/OEWHeader.tsx b/src/components/organisms/OEWHeader/OEWHeader.tsx
+index e02d360..414c194 100644
+--- a/src/components/organisms/OEWHeader/OEWHeader.tsx
++++ b/src/components/organisms/OEWHeader/OEWHeader.tsx
+@@ -1,15 +1,18 @@
+ import mapboxgl from 'mapbox-gl'
+ import moment from 'moment'
+ import React, { useEffect, useState } from 'react'
++import { ActionMeta } from 'react-select'
+ import { IDayOption } from '../../../interfaces/IDayOption'
+ import { AreaDetails } from '../../atoms/AreaDetails/AreaDetails'
+ import { BackButton } from '../../atoms/BackButton/BackButton'
++import MapProjectionButton from '../../atoms/MapProjectionButton/MapProjectionButton'
+ import { ProbabilityLegend } from '../../atoms/ProbabilityLegend/ProbabilityLegend'
+ import DaySelect from '../../molecules/DaySelect/DaySelect'
++import { IRegionData, CurrentAoiMetaData, Model } from '../MapBoxMap/types'
+ import './OEWHeader.css'
+-import MapProjectionButton from '../../atoms/MapProjectionButton/MapProjectionButton'
+-import { IRegionData } from '../MapBoxMap/types'
+-import { ActionMeta } from 'react-select'
++import { SCLInformationContainer } from '../../atoms/SceneClassification/SclContainer'
++import { ProbabilityFilter } from '../../atoms/ProbabilityFilter/ProbabilityFilter'
++import { ModelButtons } from '../../atoms/ModelButtons/ModelButtons'
+ 
+ interface OEWHeaderProps {
+     logo: string
+@@ -17,11 +20,27 @@ interface OEWHeaderProps {
+     regionProps: null | IRegionData
+     handleSelectedDaysChange: (event: ActionMeta<IDayOption>) => void
+     handleDeselectAoi: () => void
+-
++    currentAoiMetaData: CurrentAoiMetaData | null
+     map: mapboxgl.Map
++    isBusy: boolean
++    uniqueSelectedTimestamps: number[]
++    model: Model
++    setModel: (model: Model) => void
+ }
+ 
+-const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handleSelectedDaysChange, map, handleDeselectAoi }) => {
++const OEWHeader: React.FC<OEWHeaderProps> = ({
++    logo,
++    isOpen,
++    regionProps,
++    handleSelectedDaysChange,
++    map,
++    handleDeselectAoi,
++    isBusy,
++    currentAoiMetaData,
++    uniqueSelectedTimestamps,
++    model,
++    setModel,
++}) => {
+     const [isSidebarOpen, setIsSidebarOpen] = useState(isOpen)
+     const [infoIsOpen, setInfo] = useState(false)
+ 
+@@ -36,7 +55,7 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
+     const days: IDayOption[] = []
+ 
+     if (regionProps) {
+-        regionProps.timestamps.forEach((timestamp, index) => {
++        regionProps.timestamps.forEach((timestamp) => {
+             const readableTimestamp = moment.unix(timestamp).format('DD.MM.YYYY HH:mm')
+             days.push({ value: timestamp, label: readableTimestamp })
+         })
+@@ -53,7 +72,8 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
+                 } transform top-0 left-0 w-64 text-white fixed h-full transition-transform duration-300 ease-in-out z-10`}
+             >
+                 <div className="p-5 text-base font-bold">{regionProps?.name}</div>
+-                <div id="sidebar" className="flex flex-col items-center space-y-4">
++                <div id="sidebar" className="flex flex-col items-center justify-center h-full">
++                    {regionProps === null && <p>Click on one of the red dots to select a region first.</p>}
+                     {regionProps && (
+                         <div className="container flex flex-col justify-between h-full">
+                             <div>
+@@ -63,15 +83,21 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
+                                     firstAnalysis={regionProps.timestamps[0]}
+                                     lastAnalysis={regionProps.timestamps[regionProps.timestamps.length - 1]}
+                                     timestampsCount={regionProps.timestamps.length}
++                                    timestampWithSignificantPlastic={currentAoiMetaData?.timestampWithSignificantPlastic}
+                                 ></AreaDetails>
++                                <ModelButtons model={model} setModel={setModel} />
+                                 <div className="my-12">
+                                     <div className="font-bold text-sm my-5 text-left">Select Days</div>
+-                                    {days.length > 0 && <DaySelect days={days} handleSelectedDaysChange={handleSelectedDaysChange} />}
++                                    {days.length > 0 && <DaySelect isBusy={isBusy} days={days} handleSelectedDaysChange={handleSelectedDaysChange} />}
+                                 </div>
+                             </div>
++                            <ProbabilityFilter map={map} aoiId={regionProps.id}></ProbabilityFilter>
+                             <ProbabilityLegend></ProbabilityLegend>
+                         </div>
+                     )}
++                    {uniqueSelectedTimestamps && regionProps?.id && (
++                        <SCLInformationContainer selectedTimestamps={uniqueSelectedTimestamps || []} currentAoiId={regionProps.id} map={map} />
++                    )}
+                 </div>
+             </div>
+ 
+@@ -90,12 +116,28 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({ logo, isOpen, regionProps, handle
+                     i
+                 </button>
+                 {infoIsOpen && (
+-                    <div id="info-div" className="absolute top-24 right-2 p-4">
++                    <div id="info-div" className="absolute top-24 right-2 p-5">
+                         <p className="text-start">
+-                            The <a href="https://www.oceanecowatch.org/">Ocean Eco Watch</a> is a map highliting potential locations of floating
+-                            marine debris. We use data from the sentinel-2 satellite. Click on a location to get the detailed analysis of the area.
+-                            Each point on the map corresponds to the probability of present marine debris and represents an area spanning 10 m².
++                            <a href="https://www.oceanecowatch.org/">Ocean Eco Watch</a> is an interactive map highlighting potential locations of
++                            floating marine debris in various coastal areas. Utilizing data from the ESA's Sentinel-2 satellite, our map identifies
++                            and analyzes debris hotspots.
++                            <br></br>
++                            To explore, click on any red dot and zoom in to see a detailed marine debris analysis of the area. Each point represents a
++                            10m x 10m area with an estimated probability of marine debris presence.
++                            <br></br>
++                            We welcome your feedback and suggestions! If you enjoy this map or have ideas for new features or applications, please
++                            contact us at: <a href="mailto:contact@oceanecowatch.org">contact@oceanecowatch.org</a>.<br></br>
++                            As an open-source project, you can find and contribute to our source code on{' '}
++                            <a href="https://github.com/OceanEcoWatch">GitHub</a>.
+                         </p>
++                        <div className="flex justify-end">
++                            <button
++                                onClick={toggleInfo}
++                                className="bg-gray-800 hover:bg-gray-900 text-white font-bold text-sm py-2 px-4 rounded shadow-lg"
++                            >
++                                close
++                            </button>
++                        </div>
+                     </div>
+                 )}
+             </div>
+diff --git a/src/components/organisms/usePredictionQuery.tsx b/src/components/organisms/usePredictionQuery.tsx
+new file mode 100644
+index 0000000..5ff8282
+--- /dev/null
++++ b/src/components/organisms/usePredictionQuery.tsx
+@@ -0,0 +1,13 @@
++import { useQuery } from '@tanstack/react-query'
++import { fetchPredictions } from '../../services/mapService'
++import { Model } from './MapBoxMap/types'
++
++export const usePredictionQuery = (timestampToFetch: number | undefined, currentAoiId: number | undefined, model: Model | undefined) => {
++    return useQuery({
++        queryKey: ['prediction', timestampToFetch, currentAoiId, model],
++        queryFn: async () => await fetchPredictions(timestampToFetch!, currentAoiId!, model!),
++        staleTime: Infinity, // Data never becomes stale
++        refetchOnWindowFocus: false, // Do not refetch on window focus
++        enabled: Boolean(timestampToFetch && currentAoiId && model),
++    })
++}
+diff --git a/src/index.css b/src/index.css
+index 22c1919..eb9db2e 100644
+--- a/src/index.css
++++ b/src/index.css
+@@ -6,6 +6,7 @@
+   --gray:  rgb(55 65 81);
+   --light-gray: rgb(107, 107, 107);
+   --hover-gray: rgb(17 24 39 );
++  --black-transparent-background: rgba(0, 0, 0, 0.7)
+ }
+ 
+ body {
+diff --git a/src/interfaces/api/ISCLProperties.tsx b/src/interfaces/api/ISCLProperties.tsx
+new file mode 100644
+index 0000000..db99cfb
+--- /dev/null
++++ b/src/interfaces/api/ISCLProperties.tsx
+@@ -0,0 +1,66 @@
++export interface ISCLProperties {
++    classification: 'CLOUD_HIGH_PROB'
++    image_id: 35
++    timestamp: '2023-06-26T02:33:41'
++    aoi_id: 1
++}
++
++export enum SCL_INT {
++    NO_DATA = 0,
++    SATURATED = 1,
++    SHADOWS = 2,
++    CLOUD_SHADOWS = 3,
++    VEGETATION = 4,
++    NOT_VEGETATED = 5,
++    WATER = 6,
++    UNCLASSIFIED = 7,
++    CLOUD_MEDIUM_PROB = 8,
++    CLOUD_HIGH_PROB = 9,
++    THIN_CIRRUS = 10,
++    SNOW_ICE = 11,
++}
++
++export enum SCL_STRING {
++    NO_DATA = 'NO_DATA',
++    SATURATED = 'SATURATED',
++    SHADOWS = 'SHADOWS',
++    CLOUD_SHADOWS = 'CLOUD_SHADOWS',
++    VEGETATION = 'VEGETATION',
++    NOT_VEGETATED = 'NOT_VEGETATED',
++    WATER = 'WATER',
++    UNCLASSIFIED = 'UNCLASSIFIED',
++    CLOUD_MEDIUM_PROB = 'CLOUD_MEDIUM_PROB',
++    CLOUD_HIGH_PROB = 'CLOUD_HIGH_PROB',
++    THIN_CIRRUS = 'THIN_CIRRUS',
++    SNOW_ICE = 'SNOW_ICE',
++}
++
++export enum SCL_NAME {
++    'NO_DATA' = 'NO_DATA',
++    'SATURATED' = 'Defective pixels',
++    'SHADOWS' = 'Shadows',
++    'CLOUD_SHADOWS' = 'Cloud shadows',
++    'VEGETATION' = 'Vegetation',
++    'NOT_VEGETATED' = 'Not-vegetated',
++    'WATER' = 'Water',
++    'UNCLASSIFIED' = 'Unclassified',
++    'CLOUD_MEDIUM_PROB' = 'Clouds (medium probability)',
++    'CLOUD_HIGH_PROB' = 'Clouds (high probability)',
++    'THIN_CIRRUS' = 'Thin cirrus clouds',
++    'SNOW_ICE' = 'Snow or Ice',
++}
++
++export enum SCL_COLOR {
++    'NO_DATA' = '#390099',
++    'SATURATED' = '#9e0059',
++    'SHADOWS' = '#ff0054',
++    'CLOUD_SHADOWS' = '#ff5400',
++    'VEGETATION' = '#ffbd00',
++    'NOT_VEGETATED' = '#ffcdb2',
++    'WATER' = '#b5838d',
++    'UNCLASSIFIED' = '#4f772d',
++    'CLOUD_MEDIUM_PROB' = '#FF4500',
++    'CLOUD_HIGH_PROB' = '#1b9aaa',
++    'THIN_CIRRUS' = '#00FF00',
++    'SNOW_ICE' = '#a8a8d4',
++}
+diff --git a/src/services/mapService.tsx b/src/services/mapService.tsx
+index b92d545..88a28b7 100644
+--- a/src/services/mapService.tsx
++++ b/src/services/mapService.tsx
+@@ -1,8 +1,9 @@
+-import { FeatureCollection, Point } from 'geojson'
++import { FeatureCollection, Point, Polygon } from 'geojson'
+ import { IAOICenterProperties } from '../interfaces/api/IAOICenterProperties'
+ import { IPredProperties } from '../interfaces/api/IPredProperties'
+-import { IAPIRegionDatetimes, IRegionDatetime } from '../interfaces/api/IRegionDatetime'
+-import { AoiId } from '../components/organisms/MapBoxMap/types'
++import { IAPIRegionDatetimes } from '../interfaces/api/IRegionDatetime'
++import { AoiId, CurrentAoiMetaData, Model } from '../components/organisms/MapBoxMap/types'
++import { ISCLProperties } from '../interfaces/api/ISCLProperties'
+ 
+ var baseUrl = process.env.REACT_APP_API_URL
+ 
+@@ -56,16 +57,35 @@ export async function fetchRegionDatetimes(aoiId: AoiId): Promise<number[]> {
+         console.error('Error loading region datetimes:', error)
+         throw error
+     }
+-    //   todo use tanstack query
++}
++
++export async function fetchCurrentAoiMetaData(aoiId: number): Promise<CurrentAoiMetaData> {
++    try {
++        const response = await fetch(`${baseUrl}aoi?id=${aoiId}`)
++        if (!response.ok) {
++            throw new Error('Network response was not ok ' + response.status)
++        }
++
++        const currentAoiMetaData: any = await JSON.parse(await response.json())
++        const metaData: CurrentAoiMetaData = {
++            timestampWithSignificantPlastic: currentAoiMetaData.features[0].properties.timestamp_with_plastic_count,
++        }
++        return metaData
++    } catch (error) {
++        throw error
++    }
+ }
+ 
+ export async function fetchPredictions(
+     datetime: number,
+     aoiId: number,
++    model: Model,
+     accuracyLimit: number = 33,
+ ): Promise<FeatureCollection<Point, IPredProperties>> {
+     try {
+-        const response = await fetch(`${baseUrl}predictions-by-day-and-aoi?day=${datetime}&aoi_id=${aoiId}&accuracy_limit=${accuracyLimit}`)
++        const response = await fetch(
++            `${baseUrl}predictions-by-day-and-aoi?day=${datetime}&aoi_id=${aoiId}&accuracy_limit=${accuracyLimit}&model_id=${getModelIdByName(model)}`,
++        )
+         if (!response.ok) {
+             throw new Error('Network response was not ok ' + response.status)
+         }
+@@ -77,5 +97,30 @@ export async function fetchPredictions(
+         console.error('Error loading job predictions:', error)
+         throw error
+     }
++}
++const getModelIdByName = (model: Model): string => {
++    console.log('model', model)
++    const modelId = Model.MariNext ? 'oceanecowatch/plasticdetectionmodel:1.0.1' : 'oceanecowatch/marinext:2'
++    console.log('modelId', modelId)
++    return modelId
++}
++
++export async function fetchSceneClassificationInfo(timestamp: number, aoiId: number): Promise<FeatureCollection<Polygon, ISCLProperties>> {
++    const allClassesQuery =
++        'classification=1&classification=2&classification=3&classification=4&classification=5&classification=6&classification=7&classification=8&classification=9&classification=10&classification=11'
++    // const allClases = encodeURIComponent('1,2,3,4,5,6,7,8,9,10,11')
++    const timestampISO8601UrlEncoded = encodeURIComponent(new Date(timestamp * 1000).toISOString())
++    try {
++        const response = await fetch(`${baseUrl}scl?${allClassesQuery}&aoi_id=${aoiId}&timestamp=${timestampISO8601UrlEncoded}`)
++        if (!response.ok) {
++            throw new Error('Network response was not ok ' + response.status)
++        }
++
++        const sclInfo: FeatureCollection<Polygon, ISCLProperties> = JSON.parse(await response.json())
++        return sclInfo
++    } catch (error) {
++        console.error('Error loading SCL information:', error)
++        throw error
++    }
+     //   todo use tanstack query
+ }
+diff --git a/src/services/predictionLayerService.tsx b/src/services/predictionLayerService.tsx
+index 4b30b72..59f71b7 100644
+--- a/src/services/predictionLayerService.tsx
++++ b/src/services/predictionLayerService.tsx
+@@ -22,23 +22,58 @@ export function addPolygonLayer(map: mapboxgl.Map, aoi: Polygon) {
+     })
+ }
+ 
+-export function addPredictionLayer(
+-    map: mapboxgl.Map,
+-    datetime: number,
+-    aoiId: number,
+-    predictionQueryData: FeatureCollection<Point, IPredProperties>,
+-) {
+-    map.addSource(`prediction-${datetime}-${aoiId}`, {
++export function addPredictionLayer(map: mapboxgl.Map, aoiId: number, currentPredictions: FeatureCollection<Point, IPredProperties>) {
++    map.addSource(`prediction-${aoiId}`, {
+         type: 'geojson',
+-        data: predictionQueryData,
++        data: currentPredictions,
+     })
+ 
+     map.addLayer({
+-        id: `prediction-${datetime}-${aoiId}`,
++        id: `prediction-${aoiId}-heatmap`,
++        type: 'heatmap',
++        source: `prediction-${aoiId}`,
++        maxzoom: 15,
++        paint: {
++            'heatmap-weight': ['interpolate', ['linear'], ['get', 'pixelValue'], 0, 0, 100, 1],
++            'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 15, 15, 15],
++            'heatmap-color': [
++                'interpolate',
++                ['linear'],
++                ['heatmap-density'],
++                0,
++                'rgba(255, 237, 160, 0)',
++                0.1,
++                colorCoding[10],
++                0.2,
++                colorCoding[20],
++                0.3,
++                colorCoding[30],
++                0.4,
++                colorCoding[40],
++                0.5,
++                colorCoding[50],
++                0.6,
++                colorCoding[60],
++                0.7,
++                colorCoding[70],
++                0.8,
++                colorCoding[80],
++                0.9,
++                colorCoding[90],
++                1,
++                colorCoding[100],
++            ],
++            'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 7, 3, 15, 3],
++        },
++    })
++
++    map.addLayer({
++        id: `prediction-${aoiId}-point`,
+         type: 'circle',
+-        source: `prediction-${datetime}-${aoiId}`,
++        source: `prediction-${aoiId}`,
++        minzoom: 14,
+         paint: {
+-            'circle-radius': 10,
++            'circle-radius': ['interpolate', ['linear'], ['zoom'], 14, 5, 22, 10],
+             'circle-color': [
+                 'interpolate',
+                 ['linear'],
+@@ -72,12 +107,12 @@ export function addPredictionLayer(
+         closeOnClick: false,
+     })
+ 
+-    map.on('mouseenter', `prediction-${datetime}-${aoiId}`, function (e) {
++    map.on('mouseenter', `prediction-${aoiId}-point`, function (e) {
+         map.getCanvas().style.cursor = 'pointer'
+ 
+-        if (e.features![0].geometry.type === 'Point') {
++        if (e.features && e.features[0].geometry.type === 'Point') {
+             var coordinates = e.features![0].geometry.coordinates.slice()
+-            var description = `${moment.unix(datetime).format('DD.MM.YYYY HH:mm')}<br>
++            var description = `${moment.unix(e.features[0].properties!.timestamp).format('DD.MM.YYYY HH:mm')}<br>
+                                ${e.features![0].properties?.pixelValue.toFixed(0)} %`
+ 
+             // Ensure that if the map is zoomed out such that multiple
+@@ -93,7 +128,7 @@ export function addPredictionLayer(
+         }
+     })
+ 
+-    map.on('mouseleave', `prediction-${datetime}-${aoiId}`, function () {
++    map.on('mouseleave', `prediction-${aoiId}-point`, function () {
+         map.getCanvas().style.cursor = ''
+         popup.remove()
+     })
+@@ -117,27 +152,22 @@ export function getBoundingBox(polygon: Polygon): [number, number, number, numbe
+     return [minX, minY, maxX, maxY]
+ }
+ 
+-export function removePredictionById(map: mapboxgl.Map, datetime: number, aoiId: number) {
+-    const layerId = `prediction-${datetime}-${aoiId}`
+-    const sourceId = `prediction-${datetime}-${aoiId}`
+-
+-    map.removeLayer(layerId)
+-    map.removeSource(sourceId)
+-}
+-
+ export function removeAllPredictions(map: mapboxgl.Map) {
+-    const layers = map.getStyle().layers
+-    layers.forEach((layer) => {
+-        if (layer.id.startsWith('prediction')) {
+-            console.log('removing layer', layer.id)
+-            map.removeLayer(layer.id)
+-        }
+-    })
++    const mapStyle = map.getStyle()
++    if (mapStyle.layers) {
++        const layers = mapStyle.layers
++        layers.forEach((layer) => {
++            if (layer.id.startsWith('prediction')) {
++           
++                map.removeLayer(layer.id)
++            }
++        })
+ 
+-    const sources = map.getStyle().sources
+-    Object.keys(sources).forEach((sourceId) => {
+-        if (sourceId.startsWith('prediction')) {
+-            map.removeSource(sourceId)
+-        }
+-    })
++        const sources = map.getStyle().sources
++        Object.keys(sources).forEach((sourceId) => {
++            if (sourceId.startsWith('prediction')) {
++                map.removeSource(sourceId)
++            }
++        })
++    }
+ }
+diff --git a/src/services/regionLayerService.tsx b/src/services/regionLayerService.tsx
+index 11fc005..07321af 100644
+--- a/src/services/regionLayerService.tsx
++++ b/src/services/regionLayerService.tsx
+@@ -12,20 +12,53 @@ function capitalizeFirstLetterOfEachWord(input: string): string {
+         .join(' ')
+ }
+ 
+-function addRegionPopup(map: mapboxgl.Map) {
++function addUnclusteredPointHover(map: mapboxgl.Map) {
+     const popup = new mapboxgl.Popup({
+         closeButton: false,
+         closeOnClick: false,
+     })
+ 
+-    map.on('mouseenter', 'regions', (event) => {
++    map.on('mouseenter', 'unclustered-point', (event) => {
+         map.getCanvas().style.cursor = 'pointer'
+ 
+-        if (event.features![0].geometry.type === 'Point') {
+-            const coordinates = event.features![0].geometry.coordinates.slice() ?? []
+-            const name = event.features![0].properties?.name
+-            const area = event.features![0].properties?.area_km2
+-            const description = `<strong>${capitalizeFirstLetterOfEachWord(name)}</strong><br>Size of the region: ${area.toFixed(2)} km<sup>2</sup>`
++        const feature = event.features![0]
++        if (feature.geometry.type === 'Point') {
++            const coordinates = (feature.geometry as GeoJSON.Point).coordinates.slice()
++            const {
++                name,
++                area_km2: areaSkm,
++                start_date: startDate,
++                end_date: endDate,
++                unique_timestamp_count: uniqueTimestampCount,
++            } = feature.properties!
++
++            const dateOptions: Intl.DateTimeFormatOptions = {
++                year: 'numeric',
++                month: 'numeric',
++                day: 'numeric',
++                hour: 'numeric',
++                minute: 'numeric',
++            }
++            const startDateString = new Date(startDate * 1000).toLocaleString(undefined, dateOptions)
++            const endDateString = new Date(endDate * 1000).toLocaleString(undefined, dateOptions) // Convert to human readable date, with browser timezone
++            const description = `
++            <strong>${capitalizeFirstLetterOfEachWord(name)}</strong>
++            <table>
++                <tr>
++                    <td>Size:</td>
++                    <td><strong>${areaSkm.toFixed(2)} km<sup>2</sup></strong></td>
++                </tr>
++                <tr>
++                    <td>Period:</td>
++                    <td><strong>${startDateString} - ${endDateString}</strong></td>
++                </tr>
++                <tr>
++                    <td>Predicted days:</td>
++                    <td><strong>${uniqueTimestampCount}</strong></td>
++                </tr>
++            </table>
++            <em>Click to see predictions</em>
++            `
+ 
+             while (Math.abs(event.lngLat.lng - coordinates[0]) > 180) {
+                 coordinates[0] += event.lngLat.lng > coordinates[0] ? 360 : -360
+@@ -33,7 +66,8 @@ function addRegionPopup(map: mapboxgl.Map) {
+             popup.setLngLat([coordinates[0], coordinates[1]]).setHTML(description).addTo(map)
+         }
+     })
+-    map.on('mouseleave', 'regions', () => {
++
++    map.on('mouseleave', 'unclustered-point', () => {
+         map.getCanvas().style.cursor = ''
+         popup.remove()
+     })
+@@ -45,8 +79,6 @@ export function addAoiCentersLayer(
+     stateSetter: (regionData: IRegionData) => void,
+     setCurrentAoiId: (aoiId: AoiId) => void,
+ ): void {
+-    console.log('Adding aoi centers layer', regions)
+-
+     map.addSource('aoi-centers', {
+         type: 'geojson',
+         data: regions,
+@@ -93,10 +125,9 @@ export function addAoiCentersLayer(
+         },
+     })
+ 
+-    addRegionPopup(map)
++    addUnclusteredPointHover(map)
+ 
+     map.on('click', 'unclustered-point', async (e) => {
+-        // Check if the properties object exists
+         if (!e.features || !e.features[0]?.properties) {
+             console.error('No properties found')
+             return
+@@ -106,7 +137,9 @@ export function addAoiCentersLayer(
+         const regionName = e.features[0].properties.name
+         const regionSize = e.features[0].properties.area_km2
+         const regionPolygon: Polygon = JSON.parse(e.features[0].properties.polygon)
++        const bbox = JSON.parse(e.features[0].properties.bbox)
+ 
++        map.fitBounds(bbox, { padding: 88 })
+         hideAoiCenters(map)
+         addAoiBboxLayer(map, regionPolygon)
+         stateSetter({
+@@ -135,6 +168,12 @@ export function addAoiCentersLayer(
+             })
+         })
+     })
++    map.on('mouseenter', 'clusters', (event) => {
++        map.getCanvas().style.cursor = 'pointer'
++    })
++    map.on('mouseleave', 'clusters', () => {
++        map.getCanvas().style.cursor = ''
++    })
+ }
+ 
+ export function hideAoiCenters(map: mapboxgl.Map) {
+@@ -148,29 +187,3 @@ export function showAoiCenters(map: mapboxgl.Map) {
+     map.setLayoutProperty('cluster-count', 'visibility', 'visible')
+     map.setLayoutProperty('unclustered-point', 'visibility', 'visible')
+ }
+-
+-function addClusteredRegionPopup(map: mapboxgl.Map, content: string) {
+-    const popup = new mapboxgl.Popup({
+-        closeButton: false,
+-        closeOnClick: false,
+-    })
+-
+-    map.on('mouseenter', 'clusteredRegions', (event) => {
+-        map.getCanvas().style.cursor = 'pointer'
+-
+-        if (event.features![0].geometry.type === 'Point') {
+-            const coordinates = event.features![0].geometry.coordinates.slice() ?? []
+-            const name = event.features![0].properties?.name
+-            const area = event.features![0].properties?.area_km2
+-
+-            while (Math.abs(event.lngLat.lng - coordinates[0]) > 180) {
+-                coordinates[0] += event.lngLat.lng > coordinates[0] ? 360 : -360
+-            }
+-            popup.setLngLat([coordinates[0], coordinates[1]]).setHTML(content).addTo(map)
+-        }
+-    })
+-    map.on('mouseleave', 'clusteredRegions', () => {
+-        map.getCanvas().style.cursor = ''
+-        popup.remove()
+-    })
+-}

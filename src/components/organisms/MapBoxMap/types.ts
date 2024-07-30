@@ -9,3 +9,12 @@ export interface IRegionData {
     areaSize: number
     polygon: Polygon
 }
+
+export type CurrentAoiMetaData = {
+    timestampWithSignificantPlastic: number
+}
+
+export enum Model {
+    'Marida' = 'Marida',
+    'MariNext' = 'MariNext',
+}
