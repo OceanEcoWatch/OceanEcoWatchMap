@@ -8,10 +8,11 @@ import { BackButton } from '../../atoms/BackButton/BackButton'
 import MapProjectionButton from '../../atoms/MapProjectionButton/MapProjectionButton'
 import { ProbabilityLegend } from '../../atoms/ProbabilityLegend/ProbabilityLegend'
 import DaySelect from '../../molecules/DaySelect/DaySelect'
-import { IRegionData, CurrentAoiMetaData, AoiId } from '../MapBoxMap/types'
+import { IRegionData, CurrentAoiMetaData, Model } from '../MapBoxMap/types'
 import './OEWHeader.css'
 import { SCLInformationContainer } from '../../atoms/SceneClassification/SclContainer'
 import { ProbabilityFilter } from '../../atoms/ProbabilityFilter/ProbabilityFilter'
+import { ModelButtons } from '../../atoms/ModelButtons/ModelButtons'
 
 interface OEWHeaderProps {
     logo: string
@@ -20,10 +21,11 @@ interface OEWHeaderProps {
     handleSelectedDaysChange: (event: ActionMeta<IDayOption>) => void
     handleDeselectAoi: () => void
     currentAoiMetaData: CurrentAoiMetaData | null
-
     map: mapboxgl.Map
     isBusy: boolean
     uniqueSelectedTimestamps: number[]
+    model: Model
+    setModel: (model: Model) => void
 }
 
 const OEWHeader: React.FC<OEWHeaderProps> = ({
@@ -36,6 +38,8 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({
     isBusy,
     currentAoiMetaData,
     uniqueSelectedTimestamps,
+    model,
+    setModel,
 }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(isOpen)
     const [infoIsOpen, setInfo] = useState(false)
@@ -81,6 +85,7 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({
                                     timestampsCount={regionProps.timestamps.length}
                                     timestampWithSignificantPlastic={currentAoiMetaData?.timestampWithSignificantPlastic}
                                 ></AreaDetails>
+                                <ModelButtons model={model} setModel={setModel} />
                                 <div className="my-12">
                                     <div className="font-bold text-sm my-5 text-left">Select Days</div>
                                     {days.length > 0 && <DaySelect isBusy={isBusy} days={days} handleSelectedDaysChange={handleSelectedDaysChange} />}
