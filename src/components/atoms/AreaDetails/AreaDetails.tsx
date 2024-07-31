@@ -6,7 +6,7 @@ interface AreaDetailsProps {
     firstAnalysis: number
     lastAnalysis: number
     timestampsCount: number
-    timestampWithSignificantPlastic?: number
+    timestampWithSignificantPlastic: number | string // can be "no data"
 }
 
 export const AreaDetails: React.FC<AreaDetailsProps> = ({
@@ -52,14 +52,12 @@ export const AreaDetails: React.FC<AreaDetailsProps> = ({
                         </td>
                         <td>{timestampsCount}</td>
                     </tr>
-                    {timestampWithSignificantPlastic && (
-                        <tr>
-                            <td>
-                                <p>Number of days without plastic found:</p>
-                            </td>
-                            <td>{timestampsCount - timestampWithSignificantPlastic}</td>
-                        </tr>
-                    )}
+                    <tr>
+                        <td>
+                            <p>Days with very high likely hood of plastic:</p>
+                        </td>
+                        <td>{timestampWithSignificantPlastic}</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
