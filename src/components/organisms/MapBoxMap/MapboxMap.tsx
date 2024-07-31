@@ -6,7 +6,6 @@ import { fetchRegionDatetimes, fetchAoiCenters, fetchCurrentAoiMetaData } from '
 import { initMap } from '../../../services/mapboxService'
 import { addPredictionLayer, removeAllPredictions } from '../../../services/predictionLayerService'
 import { addAoiCentersLayer } from '../../../services/regionLayerService'
-import TopBanner from '../OEWHeader/OEWHeader'
 import './MapboxMap.css'
 import { IRegionData, AoiId, CurrentAoiMetaData, Model } from './types'
 import { useQuery } from '@tanstack/react-query'
@@ -16,6 +15,7 @@ import { FeatureCollection, Point } from 'geojson'
 import { IPredProperties } from '../../../interfaces/api/IPredProperties'
 import { usePredictionQuery } from '../usePredictionQuery'
 import { getBeginningOfUTCDay } from '../../../common/utils'
+import { OEWHeader } from '../OEWHeader/OEWHeader'
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY!
 
@@ -37,7 +37,7 @@ const MapboxMap: React.FC = () => {
     const [currentAoiId, setCurrentAoiId] = useState<AoiId>(null)
     const [currentAoiData, setCurrentAoiData] = useState<null | IRegionData>(null)
     const [mapLoaded, setMapLoaded] = useState(false)
-    const [currentAoiMetaData, setCurrentAoiMetaData] = useState<null | CurrentAoiMetaData>(null)
+    const [currentAoiMetaData, setCurrentAoiMetaData] = useState<CurrentAoiMetaData>({ timestampWithSignificantPlastic: 'no ,' })
     const [currentPredictions, setCurrentPredictions] = useState<null | FeatureCollection<Point, IPredProperties>>(null)
 
     const getUniqueSelectedTimestamps = (): number[] => {
@@ -239,7 +239,7 @@ const MapboxMap: React.FC = () => {
                 </div>
             )}
 
-            <TopBanner
+            <OEWHeader
                 logo={Logo}
                 isOpen={!!currentAoiId}
                 regionProps={currentAoiData}
@@ -251,7 +251,7 @@ const MapboxMap: React.FC = () => {
                 uniqueSelectedTimestamps={getUniqueSelectedTimestamps()}
                 model={model}
                 setModel={setModel}
-            ></TopBanner>
+            ></OEWHeader>
             <div ref={mapContainerRef} className="map-container h-screen"></div>
         </div>
     )

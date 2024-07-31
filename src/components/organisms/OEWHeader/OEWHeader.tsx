@@ -20,7 +20,7 @@ interface OEWHeaderProps {
     regionProps: null | IRegionData
     handleSelectedDaysChange: (event: ActionMeta<IDayOption>) => void
     handleDeselectAoi: () => void
-    currentAoiMetaData: CurrentAoiMetaData | null
+    currentAoiMetaData: CurrentAoiMetaData
     map: mapboxgl.Map
     isBusy: boolean
     uniqueSelectedTimestamps: number[]
@@ -28,7 +28,7 @@ interface OEWHeaderProps {
     setModel: (model: Model) => void
 }
 
-const OEWHeader: React.FC<OEWHeaderProps> = ({
+export const OEWHeader: React.FC<OEWHeaderProps> = ({
     logo,
     isOpen,
     regionProps,
@@ -83,7 +83,7 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({
                                     firstAnalysis={regionProps.timestamps[0]}
                                     lastAnalysis={regionProps.timestamps[regionProps.timestamps.length - 1]}
                                     timestampsCount={regionProps.timestamps.length}
-                                    timestampWithSignificantPlastic={currentAoiMetaData?.timestampWithSignificantPlastic}
+                                    timestampWithSignificantPlastic={currentAoiMetaData.timestampWithSignificantPlastic}
                                 ></AreaDetails>
                                 <ModelButtons model={model} setModel={setModel} />
                                 <div className="my-12">
@@ -144,5 +144,3 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({
         </div>
     )
 }
-
-export default OEWHeader
