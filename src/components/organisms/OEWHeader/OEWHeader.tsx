@@ -1,7 +1,5 @@
 import mapboxgl from 'mapbox-gl'
-import moment from 'moment'
 import React, { useEffect, useState } from 'react'
-import { ActionMeta } from 'react-select'
 import { IDayOption } from '../../../interfaces/IDayOption'
 import { AreaDetails } from '../../atoms/AreaDetails/AreaDetails'
 import { BackButton } from '../../atoms/BackButton/BackButton'
@@ -18,12 +16,12 @@ interface OEWHeaderProps {
     logo: string
     isOpen: boolean
     regionProps: null | IRegionData
-    handleSelectedDaysChange: (event: ActionMeta<IDayOption>) => void
+    possibleDays: IDayOption[]
+    selectedDays: readonly IDayOption[]
+    setSelectedDays: React.Dispatch<React.SetStateAction<readonly IDayOption[]>>
     handleDeselectAoi: () => void
     currentAoiMetaData: CurrentAoiMetaData
     map: mapboxgl.Map
-    isBusy: boolean
-    uniqueSelectedTimestamps: number[]
     model: Model
     setModel: (model: Model) => void
 }
@@ -32,12 +30,12 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
     logo,
     isOpen,
     regionProps,
-    handleSelectedDaysChange,
+    possibleDays,
+    selectedDays,
+    setSelectedDays,
     map,
     handleDeselectAoi,
-    isBusy,
     currentAoiMetaData,
-    uniqueSelectedTimestamps,
     model,
     setModel,
 }) => {
@@ -51,15 +49,6 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
     useEffect(() => {
         setIsSidebarOpen(isOpen)
     }, [isOpen])
-
-    const days: IDayOption[] = []
-
-    if (regionProps) {
-        regionProps.timestamps.forEach((timestamp) => {
-            const readableTimestamp = moment.unix(timestamp).format('DD.MM.YYYY HH:mm')
-            days.push({ value: timestamp, label: readableTimestamp })
-        })
-    }
 
     return (
         <div id="header">
@@ -88,15 +77,23 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
                                 <ModelButtons model={model} setModel={setModel} />
                                 <div className="my-12">
                                     <div className="font-bold text-sm my-5 text-left">Select Days</div>
-                                    {days.length > 0 && <DaySelect isBusy={isBusy} days={days} handleSelectedDaysChange={handleSelectedDaysChange} />}
+                                    <DaySelect selectedDays={selectedDays} possibleDays={possibleDays} setSelectedDays={setSelectedDays} />
                                 </div>
                             </div>
                             <ProbabilityFilter map={map} aoiId={regionProps.id}></ProbabilityFilter>
                             <ProbabilityLegend></ProbabilityLegend>
                         </div>
                     )}
-                    {uniqueSelectedTimestamps && regionProps?.id && (
-                        <SCLInformationContainer selectedTimestamps={uniqueSelectedTimestamps || []} currentAoiId={regionProps.id} map={map} />
+                    {selectedDays && regionProps?.id && (
+                        <SCLInformationContainer
+                            selectedTimestamps={
+                                selectedDays.map((selectedDay) => {
+                                    return selectedDay.value
+                                }) || []
+                            }
+                            currentAoiId={regionProps.id}
+                            map={map}
+                        />
                     )}
                 </div>
             </div>
