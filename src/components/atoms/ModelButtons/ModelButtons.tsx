@@ -1,27 +1,53 @@
+import React, { useState, useEffect } from 'react'
 import { Model } from '../../organisms/MapBoxMap/types'
+import './ModelButtons.css'
+import { ExplanationBox } from '../ExplanationBox/ExplanationBox'
 
 export const ModelButtons: React.FC<{ model: Model; setModel: (model: Model) => void }> = ({ model, setModel }) => {
-    const buttonClassName = 'flex items-center justify-center text-white text-xs py-2 px-4 rounded shadow-lg'
-    const disabledButtonClassName = 'bg-gray-800'
-    const enabledButtonClassName = 'bg-gray-500'
+    const [showExplanation, setShowExplanation] = useState(false)
+    const [hoveredButton, setHoveredButton] = useState<string | null>(null)
+
+    useEffect(() => {
+        let timer: NodeJS.Timeout
+        if (hoveredButton) {
+            timer = setTimeout(() => {
+                setShowExplanation(true)
+            }, 1000)
+        } else {
+            setShowExplanation(false)
+        }
+        return () => clearTimeout(timer)
+    }, [hoveredButton])
+
+    const handleMouseEnter = (buttonName: string) => {
+        setHoveredButton(buttonName)
+    }
+
+    const handleMouseLeave = () => {
+        setHoveredButton(null)
+    }
 
     return (
-        <div className="flex align-middle">
+        <div className="button-container">
             <button
-                className={`${buttonClassName} ${model === Model.MariNext ? disabledButtonClassName : enabledButtonClassName}`}
-                disabled={model === Model.Marida}
+                className={`button ${model === Model.MariNext ? 'button-disabled' : 'button-enabled'}`}
                 onClick={() => setModel(Model.Marida)}
+                onMouseEnter={() => handleMouseEnter(Model.Marida)}
+                onMouseLeave={handleMouseLeave}
             >
                 {Model.Marida}
             </button>
 
             <button
-                className={`${buttonClassName} ${model === Model.Marida ? disabledButtonClassName : enabledButtonClassName}`}
-                disabled={model === Model.MariNext}
+                className={`button ${model === Model.Marida ? 'button-disabled' : 'button-enabled'}`}
                 onClick={() => setModel(Model.MariNext)}
+                onMouseEnter={() => handleMouseEnter(Model.MariNext)}
+                onMouseLeave={handleMouseLeave}
             >
                 {Model.MariNext}
             </button>
+
+            {hoveredButton && <ExplanationBox message={`You are looking at the Model: ${hoveredButton}`} show={showExplanation} />}
         </div>
     )
 }
