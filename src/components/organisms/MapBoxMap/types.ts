@@ -14,7 +14,8 @@ export type CurrentAoiMetaData = {
     timestampWithSignificantPlastic: number | string
 }
 
+// This enum maps the model names to the display names in the UI
 export enum Model {
-    'Marida' = 'Marida',
+    'Marida' = 'Marine Debris Detector',
     'MariNext' = 'MariNext',
 }
