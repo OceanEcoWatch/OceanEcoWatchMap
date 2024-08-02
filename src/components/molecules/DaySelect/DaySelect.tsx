@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Select, { MultiValue } from 'react-select'
 import { IDayOption } from '../../../interfaces/IDayOption'
 
@@ -9,9 +9,17 @@ interface DaySelectProps {
 }
 
 const DaySelect: React.FC<DaySelectProps> = ({ possibleDays, selectedDays, setSelectedDays }) => {
+    const [isDefaultSet, setIsDefaultSet] = React.useState(false)
     const handleChange = (selectedOptions: MultiValue<IDayOption>) => {
         setSelectedDays(selectedOptions)
     }
+
+    useEffect(() => {
+        if (possibleDays.length > 0 && !isDefaultSet) {
+            setIsDefaultSet(true)
+            setSelectedDays([possibleDays[0]])
+        }
+    }, [possibleDays, isDefaultSet, setSelectedDays])
 
     return (
         <Select
