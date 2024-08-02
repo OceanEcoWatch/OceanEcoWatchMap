@@ -24,6 +24,8 @@ interface OEWHeaderProps {
     map: mapboxgl.Map
     model: Model
     setModel: (model: Model) => void
+    setProbabilityThreshold: React.Dispatch<React.SetStateAction<number>>
+    probabilityThreshold: number
 }
 
 export const OEWHeader: React.FC<OEWHeaderProps> = ({
@@ -38,6 +40,8 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
     currentAoiMetaData,
     model,
     setModel,
+    probabilityThreshold,
+    setProbabilityThreshold,
 }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(isOpen)
     const [infoIsOpen, setInfo] = useState(false)
@@ -80,7 +84,10 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
                                     <DaySelect selectedDays={selectedDays} possibleDays={possibleDays} setSelectedDays={setSelectedDays} />
                                 </div>
                             </div>
-                            <ProbabilityFilter map={map} aoiId={regionProps.id}></ProbabilityFilter>
+                            <ProbabilityFilter
+                                setProbabilityThreshold={setProbabilityThreshold}
+                                probabilityThreshold={probabilityThreshold}
+                            ></ProbabilityFilter>
                             <ProbabilityLegend></ProbabilityLegend>
                         </div>
                     )}

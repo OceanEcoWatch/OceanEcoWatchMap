@@ -30,7 +30,7 @@ export const MapboxMap: React.FC = () => {
     const [currentAoiMetaData, setCurrentAoiMetaData] = useState<CurrentAoiMetaData>({ timestampWithSignificantPlastic: 'no data' })
     const [currentPredictions, setCurrentPredictions] = useState<null | FeatureCollection<Point, IPredProperties>>(null)
     const [possibleDays, setPossibleDays] = useState<IDayOption[]>([])
-
+    const [probabilityThreshold, setProbabilityThreshold] = useState(30)
     //set the possible days for the day select component depending on the aoi info
     useEffect(() => {
         if (currentAoiData && currentAoiData.timestamps) {
@@ -110,6 +110,11 @@ export const MapboxMap: React.FC = () => {
         setCurrentPredictions(null)
         setSelectedDays([])
     }
+    useEffect(() => {
+        applyProbabilityFilter()
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [probabilityThreshold])
 
     //use Effect to update the prediction layer on the map
     useEffect(() => {
@@ -117,6 +122,7 @@ export const MapboxMap: React.FC = () => {
             removeAllPredictions(map)
             if (currentPredictions && currentAoiId) {
                 addPredictionLayer(map, currentAoiId, currentPredictions)
+                applyProbabilityFilter()
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -148,6 +154,17 @@ export const MapboxMap: React.FC = () => {
             setCurrentAoiMetaData(currentAoiMetaDataQueryData)
         }
     }, [currentAoiMetaDataQueryIsSuccess, currentAoiMetaDataQueryData])
+
+    const applyProbabilityFilter = () => {
+        if (map && currentAoiId) {
+            if (map.getLayer(`prediction-${currentAoiId}-heatmap`)) {
+                map.setFilter(`prediction-${currentAoiId}-heatmap`, ['>', ['get', 'pixelValue'], probabilityThreshold])
+            }
+            if (map.getLayer(`prediction-${currentAoiId}-point`)) {
+                map.setFilter(`prediction-${currentAoiId}-point`, ['>', ['get', 'pixelValue'], probabilityThreshold])
+            }
+        }
+    }
     return (
         <div>
             {aoiQueryIsLoading && (
@@ -219,6 +236,8 @@ export const MapboxMap: React.FC = () => {
                 map={map!}
                 model={model}
                 setModel={setModel}
+                setProbabilityThreshold={setProbabilityThreshold}
+                probabilityThreshold={probabilityThreshold}
             ></OEWHeader>
             <div ref={mapContainerRef} className="map-container h-screen"></div>
         </div>
