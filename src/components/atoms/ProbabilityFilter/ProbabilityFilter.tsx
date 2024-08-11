@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import './ProbabilityFilter.css'
 
 export const ProbabilityFilter: React.FC<{ map: mapboxgl.Map; aoiId: number }> = ({ map, aoiId }) => {
     const [currentProbability, setCurrentProbability] = useState(30)
@@ -36,6 +37,7 @@ export const ProbabilityFilter: React.FC<{ map: mapboxgl.Map; aoiId: number }> =
                     value={currentProbability}
                     min="30"
                     max="100"
+                    className="slider"
                     type="range"
                     onChange={(e) => handleProbabilityChange(e)}
                 ></input>

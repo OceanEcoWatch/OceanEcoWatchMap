@@ -22,7 +22,12 @@ export function addPolygonLayer(map: mapboxgl.Map, aoi: Polygon) {
     })
 }
 
-export function addPredictionLayer(map: mapboxgl.Map, aoiId: number, currentPredictions: FeatureCollection<Point, IPredProperties>) {
+export function addPredictionLayer(
+    map: mapboxgl.Map,
+    aoiId: number,
+    currentPredictions: FeatureCollection<Point, IPredProperties>,
+    addPopups: boolean = true,
+) {
     map.addSource(`prediction-${aoiId}`, {
         type: 'geojson',
         data: currentPredictions,
@@ -102,36 +107,40 @@ export function addPredictionLayer(map: mapboxgl.Map, aoiId: number, currentPred
         },
     })
 
-    var popup = new mapboxgl.Popup({
-        closeButton: false,
-        closeOnClick: false,
-    })
+    if (addPopups) {
+        var popup = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: false,
+        })
 
-    map.on('mouseenter', `prediction-${aoiId}-point`, function (e) {
-        map.getCanvas().style.cursor = 'pointer'
-
-        if (e.features && e.features[0].geometry.type === 'Point') {
-            var coordinates = e.features![0].geometry.coordinates.slice()
-            var description = `${moment.unix(e.features[0].properties!.timestamp).format('DD.MM.YYYY HH:mm')}<br>
+        map.on('mouseenter', `prediction-${aoiId}-point`, function (e) {
+            map.getCanvas().style.cursor = 'pointer'
+            if (addPopups) {
+                // todo marinext popups still visible even if addPopups = false
+                if (e.features && e.features[0].geometry.type === 'Point') {
+                    var coordinates = e.features![0].geometry.coordinates.slice()
+                    var description = `${moment.unix(e.features[0].properties!.timestamp).format('DD.MM.YYYY HH:mm')}<br>
                                ${e.features![0].properties?.pixelValue.toFixed(0)} %`
 
-            // Ensure that if the map is zoomed out such that multiple
-            // copies of the feature are visible, the popup appears
-            // over the copy being pointed to.
-            while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-                coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360
+                    // Ensure that if the map is zoomed out such that multiple
+                    // copies of the feature are visible, the popup appears
+                    // over the copy being pointed to.
+                    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360
+                    }
+
+                    // Populate the popup and set its coordinates
+                    // based on the feature found.
+                    popup.setLngLat([coordinates[0], coordinates[1]]).setHTML(description).addTo(map)
+                }
             }
+        })
 
-            // Populate the popup and set its coordinates
-            // based on the feature found.
-            popup.setLngLat([coordinates[0], coordinates[1]]).setHTML(description).addTo(map)
-        }
-    })
-
-    map.on('mouseleave', `prediction-${aoiId}-point`, function () {
-        map.getCanvas().style.cursor = ''
-        popup.remove()
-    })
+        map.on('mouseleave', `prediction-${aoiId}-point`, function () {
+            map.getCanvas().style.cursor = ''
+            popup.remove()
+        })
+    }
 }
 
 export function getBoundingBox(polygon: Polygon): [number, number, number, number] {
@@ -158,7 +167,6 @@ export function removeAllPredictions(map: mapboxgl.Map) {
         const layers = mapStyle.layers
         layers.forEach((layer) => {
             if (layer.id.startsWith('prediction')) {
-           
                 map.removeLayer(layer.id)
             }
         })

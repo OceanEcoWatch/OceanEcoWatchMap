@@ -1,21 +1,21 @@
+import { useQuery } from '@tanstack/react-query'
+import { FeatureCollection, Point } from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import React, { useEffect, useRef, useState } from 'react'
+import { ActionMeta } from 'react-select'
 import Logo from '../../../assets/logo.png'
-import { fetchRegionDatetimes, fetchAoiCenters, fetchCurrentAoiMetaData } from '../../../services/mapService'
+import { getBeginningOfUTCDay } from '../../../common/utils'
+import { IDayOption } from '../../../interfaces/IDayOption'
+import { IPredProperties } from '../../../interfaces/api/IPredProperties'
+import { fetchAoiCenters, fetchCurrentAoiMetaData, fetchRegionDatetimes } from '../../../services/mapService'
 import { initMap } from '../../../services/mapboxService'
 import { addPredictionLayer, removeAllPredictions } from '../../../services/predictionLayerService'
 import { addAoiCentersLayer } from '../../../services/regionLayerService'
 import TopBanner from '../OEWHeader/OEWHeader'
-import './MapboxMap.css'
-import { IRegionData, AoiId, CurrentAoiMetaData, Model } from './types'
-import { useQuery } from '@tanstack/react-query'
-import { ActionMeta } from 'react-select'
-import { IDayOption } from '../../../interfaces/IDayOption'
-import { FeatureCollection, Point } from 'geojson'
-import { IPredProperties } from '../../../interfaces/api/IPredProperties'
 import { usePredictionQuery } from '../usePredictionQuery'
-import { getBeginningOfUTCDay } from '../../../common/utils'
+import './MapboxMap.css'
+import { AoiId, CurrentAoiMetaData, IRegionData, Model } from './types'
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY!
 
@@ -144,8 +144,13 @@ const MapboxMap: React.FC = () => {
     useEffect(() => {
         if (map) {
             removeAllPredictions(map)
+
             if (currentPredictions && currentAoiId) {
-                addPredictionLayer(map, currentAoiId, currentPredictions)
+                if (model === Model.MariNext) {
+                    addPredictionLayer(map, currentAoiId, currentPredictions, false)
+                } else {
+                    addPredictionLayer(map, currentAoiId, currentPredictions)
+                }
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -1,8 +1,8 @@
 import { FeatureCollection, Point, Polygon } from 'geojson'
+import { AoiId, CurrentAoiMetaData, Model } from '../components/organisms/MapBoxMap/types'
 import { IAOICenterProperties } from '../interfaces/api/IAOICenterProperties'
 import { IPredProperties } from '../interfaces/api/IPredProperties'
 import { IAPIRegionDatetimes } from '../interfaces/api/IRegionDatetime'
-import { AoiId, CurrentAoiMetaData, Model } from '../components/organisms/MapBoxMap/types'
 import { ISCLProperties } from '../interfaces/api/ISCLProperties'
 
 var baseUrl = process.env.REACT_APP_API_URL
@@ -99,9 +99,7 @@ export async function fetchPredictions(
     }
 }
 const getModelIdByName = (model: Model): string => {
-    console.log('model', model)
     const modelId = Model.MariNext ? 'oceanecowatch/plasticdetectionmodel:1.0.1' : 'oceanecowatch/marinext:2'
-    console.log('modelId', modelId)
     return modelId
 }
 
