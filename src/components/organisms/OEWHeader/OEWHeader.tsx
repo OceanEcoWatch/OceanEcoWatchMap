@@ -73,7 +73,7 @@ const OEWHeader: React.FC<OEWHeaderProps> = ({
     }
 
     return (
-        <div className="test">
+        <div>
             {windowWidth < 570 && (
                 <div className="header-top-row flex items-center justify-center">
                     <a href="https://oceanecowatch.org" className="flex items-center">
