@@ -29,7 +29,7 @@ export const ModelButtons: React.FC<{ model: Model; setModel: (model: Model) => 
                     <div className="tooltip-box">
                         <p>
                             This model was published by Marc Rußwurm. It's based on the <a href="https://marine-debris.github.io/">Marida</a> dataset.
-                            For more details chckout his paper{' '}
+                            It outputs a probability value for each pixel, ranging from 0% to 100%. For more details chckout his paper{' '}
                             <a href="https://www.researchgate.net/publication/372136277_Large-scale_Detection_of_Marine_Debris_in_Coastal_Areas_with_Sentinel-2">
                                 Large-scale Detection of Marine Debris in Coastal Areas with Sentinel-2
                             </a>
@@ -62,7 +62,8 @@ export const ModelButtons: React.FC<{ model: Model; setModel: (model: Model) => 
                 {showTooltip2 && (
                     <div className="tooltip-box tooltip-box-2">
                         <p>
-                            This model was published by Katerina Kikaki. It's based on the <a>Mados</a> dataset. For more details read the paper{' '}
+                            This model was published by Katerina Kikaki. It's based on the <a>Mados</a> dataset. It classifies each pixel as either
+                            containing marine debris or not. For more details read the paper{' '}
                             <a href="https://www.sciencedirect.com/science/article/pii/S0924271624000625">
                                 Detecting Marine pollutants and Sea Surface features with Deep learning in Sentinel-2 imagery
                             </a>
