@@ -19,14 +19,14 @@
     white-space: nowrap;
     z-index: 1000;
     width: 200px;
-    height: 280px;
+    height: 370px;
     white-space: normal;
     word-wrap: break-word;
   }
   
 .tooltip-box-2 {
     right: 5px;
-    height: 300px;
+    height: 370px;
 }
 
 p a {
