@@ -1,3 +1,4 @@
+import './ProbabilityFilter.css'
 export const ProbabilityFilter: React.FC<{
     probabilityThreshold: number
     setProbabilityThreshold: React.Dispatch<React.SetStateAction<number>>
@@ -15,6 +16,7 @@ export const ProbabilityFilter: React.FC<{
                     value={probabilityThreshold}
                     min="30"
                     max="100"
+                    className="slider"
                     type="range"
                     onChange={(e) => handleProbabilityChange(e)}
                 ></input>

@@ -2,6 +2,7 @@ import { FeatureCollection, GeoJsonProperties, Geometry, Polygon } from 'geojson
 import mapboxgl from 'mapbox-gl'
 import React, { useEffect, useState } from 'react'
 import { SCL_COLOR, SCL_NAME } from '../../../interfaces/api/ISCLProperties'
+import './SceneClassification.css'
 
 export const SclButton: React.FC<{ className: string; map: mapboxgl.Map; geoData: Geometry[] }> = ({ className, map, geoData }) => {
     const [isActive, setIsActive] = useState(false)
@@ -51,8 +52,9 @@ export const SclButton: React.FC<{ className: string; map: mapboxgl.Map; geoData
     }, [className, geoData, isActive, map])
 
     return (
-        <div>
-            <button onClick={onClick}>{SCL_NAME[className as keyof typeof SCL_NAME]}</button>
+        <div className="flex items-center">
+            <input type="checkbox" onChange={onClick} id={`checkbox-${className}`} className="mr-2 checkbox" />
+            <label htmlFor={`checkbox-${className}`}>{SCL_NAME[className as keyof typeof SCL_NAME]}</label>
         </div>
     )
 }

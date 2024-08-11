@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react'
-import { useSclQuery } from './useSclInfo'
 import { FeatureCollection, Geometry, Polygon } from 'geojson'
+import React, { useEffect, useState } from 'react'
 import { ISCLProperties } from '../../../interfaces/api/ISCLProperties'
+import { useSclQuery } from './useSclInfo'
 
 import mapboxgl from 'mapbox-gl'
 import { SclButton } from './SceneClassButton'
@@ -49,7 +49,7 @@ export const SCLInformationContainer: React.FC<{
     }
 
     return (
-        <div>
+        <div className="text-left">
             {selectedTimestamps.length > 1 && <p>Select only one timestamp to request scene classification data</p>}
             {selectedTimestamps.length < 1 && <p>Select one timestamp to request scene classification data</p>}
             {selectedTimestamps.length === 1 && (isPending || isLoading) && <p>Loading...</p>}

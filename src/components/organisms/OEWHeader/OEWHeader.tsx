@@ -4,13 +4,13 @@ import { IDayOption } from '../../../interfaces/IDayOption'
 import { AreaDetails } from '../../atoms/AreaDetails/AreaDetails'
 import { BackButton } from '../../atoms/BackButton/BackButton'
 import MapProjectionButton from '../../atoms/MapProjectionButton/MapProjectionButton'
-import { ProbabilityLegend } from '../../atoms/ProbabilityLegend/ProbabilityLegend'
-import DaySelect from '../../molecules/DaySelect/DaySelect'
-import { IRegionData, CurrentAoiMetaData, Model } from '../MapBoxMap/types'
-import './OEWHeader.css'
-import { SCLInformationContainer } from '../../atoms/SceneClassification/SclContainer'
-import { ProbabilityFilter } from '../../atoms/ProbabilityFilter/ProbabilityFilter'
 import { ModelButtons } from '../../atoms/ModelButtons/ModelButtons'
+import { ProbabilityFilter } from '../../atoms/ProbabilityFilter/ProbabilityFilter'
+import { ProbabilityLegend } from '../../atoms/ProbabilityLegend/ProbabilityLegend'
+import { SCLInformationContainer } from '../../atoms/SceneClassification/SclContainer'
+import DaySelect from '../../molecules/DaySelect/DaySelect'
+import { CurrentAoiMetaData, IRegionData, Model } from '../MapBoxMap/types'
+import './OEWHeader.css'
 
 interface OEWHeaderProps {
     logo: string
@@ -78,36 +78,46 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
                                     timestampsCount={regionProps.timestamps.length}
                                     timestampWithSignificantPlastic={currentAoiMetaData.timestampWithSignificantPlastic}
                                 ></AreaDetails>
+                                <div className="font-bold text-sm my-5 text-left">Select A Detection Model</div>
                                 <ModelButtons model={model} setModel={setModel} />
                                 <div className="my-12">
                                     <div className="font-bold text-sm my-5 text-left">Select Days</div>
                                     <DaySelect selectedDays={selectedDays} possibleDays={possibleDays} setSelectedDays={setSelectedDays} />
                                 </div>
                             </div>
-                            <ProbabilityFilter
-                                setProbabilityThreshold={setProbabilityThreshold}
-                                probabilityThreshold={probabilityThreshold}
-                            ></ProbabilityFilter>
-                            <ProbabilityLegend></ProbabilityLegend>
+
+                            <div>
+                                <div className="font-bold text-sm my-5 text-left">Scene Classification</div>
+                                <SCLInformationContainer
+                                    selectedTimestamps={
+                                        selectedDays.map((selectedDay) => {
+                                            return selectedDay.value
+                                        }) || []
+                                    }
+                                    currentAoiId={regionProps.id}
+                                    map={map}
+                                />
+                            </div>
+
+                            {model === Model.Marida && (
+                                <div>
+                                    <ProbabilityFilter
+                                        setProbabilityThreshold={setProbabilityThreshold}
+                                        probabilityThreshold={probabilityThreshold}
+                                    ></ProbabilityFilter>
+                                    <ProbabilityLegend></ProbabilityLegend>
+                                </div>
+                            )}
                         </div>
-                    )}
-                    {selectedDays && regionProps?.id && (
-                        <SCLInformationContainer
-                            selectedTimestamps={
-                                selectedDays.map((selectedDay) => {
-                                    return selectedDay.value
-                                }) || []
-                            }
-                            currentAoiId={regionProps.id}
-                            map={map}
-                        />
                     )}
                 </div>
             </div>
 
-            <div className="text-center py-2 pl-16 flex items-center justify-center">
-                <img src={logo} alt="Logo" className="h-12 inline-block mr-4" />
-                <span className="text-xl font-semibold">Ocean Eco Watch</span>
+            <div className="text-center py-2 pl-[150px] flex items-center justify-center">
+                <a href="https://oceanecowatch.org" className="flex items-center">
+                    <img src={logo} alt="Logo" className="h-12 inline-block mr-4" />
+                    <span className="text-xl font-semibold">Ocean Eco Watch</span>
+                </a>
             </div>
 
             <div className="flex  space-x-8">

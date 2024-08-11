@@ -1,7 +1,6 @@
 import { Polygon } from 'geojson'
 
 export function addAoiBboxLayer(map: mapboxgl.Map, bbox: Polygon) {
-    console.log('bbox', bbox)
     map.addSource('aoi-bbox', {
         type: 'geojson',
         data: bbox,
