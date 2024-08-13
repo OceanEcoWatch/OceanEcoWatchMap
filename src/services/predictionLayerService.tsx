@@ -22,21 +22,41 @@ export function addPolygonLayer(map: mapboxgl.Map, aoi: Polygon) {
     })
 }
 
+// Create a single, reusable popup instance
+const popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false,
+})
+
 export function addPredictionLayer(
     map: mapboxgl.Map,
     aoiId: number,
     currentPredictions: FeatureCollection<Point, IPredProperties>,
-    addPopups: boolean = true,
+    showPixelValue: boolean = true,
 ) {
-    map.addSource(`prediction-${aoiId}`, {
+    const layerId = `prediction-${aoiId}`
+    const heatmapLayerId = `${layerId}-heatmap`
+    const pointLayerId = `${layerId}-point`
+
+    // Remove existing layers and source if they exist
+    if (map.getLayer(heatmapLayerId)) map.removeLayer(heatmapLayerId)
+    if (map.getLayer(pointLayerId)) map.removeLayer(pointLayerId)
+    if (map.getSource(layerId)) map.removeSource(layerId)
+
+    // Remove existing event listeners
+    map.off('mouseenter', pointLayerId as any)
+    map.off('mouseleave', pointLayerId as any)
+
+    // Add new source and layers
+    map.addSource(layerId, {
         type: 'geojson',
         data: currentPredictions,
     })
 
     map.addLayer({
-        id: `prediction-${aoiId}-heatmap`,
+        id: heatmapLayerId,
         type: 'heatmap',
-        source: `prediction-${aoiId}`,
+        source: layerId,
         maxzoom: 15,
         paint: {
             'heatmap-weight': ['interpolate', ['linear'], ['get', 'pixelValue'], 0, 0, 100, 1],
@@ -73,9 +93,9 @@ export function addPredictionLayer(
     })
 
     map.addLayer({
-        id: `prediction-${aoiId}-point`,
+        id: pointLayerId,
         type: 'circle',
-        source: `prediction-${aoiId}`,
+        source: layerId,
         minzoom: 14,
         paint: {
             'circle-radius': ['interpolate', ['linear'], ['zoom'], 14, 5, 22, 10],
@@ -107,40 +127,32 @@ export function addPredictionLayer(
         },
     })
 
-    if (addPopups) {
-        var popup = new mapboxgl.Popup({
-            closeButton: false,
-            closeOnClick: false,
-        })
+    map.on('mouseenter', pointLayerId, (e) => {
+        map.getCanvas().style.cursor = 'pointer'
+        if (e.features && e.features[0].geometry.type === 'Point') {
+            const coordinates = e.features[0].geometry.coordinates.slice() as [number, number]
+            let description = `${moment.unix(e.features[0].properties!.timestamp).format('DD.MM.YYYY HH:mm')}`
+            if (showPixelValue)
+                description += `<br>
+                           ${e.features[0].properties?.pixelValue.toFixed(0)} %`
 
-        map.on('mouseenter', `prediction-${aoiId}-point`, function (e) {
-            map.getCanvas().style.cursor = 'pointer'
-            if (addPopups) {
-                // todo marinext popups still visible even if addPopups = false
-                if (e.features && e.features[0].geometry.type === 'Point') {
-                    var coordinates = e.features![0].geometry.coordinates.slice()
-                    var description = `${moment.unix(e.features[0].properties!.timestamp).format('DD.MM.YYYY HH:mm')}<br>
-                               ${e.features![0].properties?.pixelValue.toFixed(0)} %`
-
-                    // Ensure that if the map is zoomed out such that multiple
-                    // copies of the feature are visible, the popup appears
-                    // over the copy being pointed to.
-                    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-                        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360
-                    }
-
-                    // Populate the popup and set its coordinates
-                    // based on the feature found.
-                    popup.setLngLat([coordinates[0], coordinates[1]]).setHTML(description).addTo(map)
-                }
+            // Ensure that if the map is zoomed out such that multiple
+            // copies of the feature are visible, the popup appears
+            // over the copy being pointed to.
+            while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360
             }
-        })
 
-        map.on('mouseleave', `prediction-${aoiId}-point`, function () {
-            map.getCanvas().style.cursor = ''
-            popup.remove()
-        })
-    }
+            // Populate the popup and set its coordinates
+            // based on the feature found.
+            popup.setLngLat(coordinates).setHTML(description).addTo(map)
+        }
+    })
+
+    map.on('mouseleave', pointLayerId, () => {
+        map.getCanvas().style.cursor = ''
+        popup.remove()
+    })
 }
 
 export function getBoundingBox(polygon: Polygon): [number, number, number, number] {
