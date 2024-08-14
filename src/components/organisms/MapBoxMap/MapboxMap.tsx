@@ -2,19 +2,19 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import React, { useEffect, useRef, useState } from 'react'
 
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { FeatureCollection, Point } from 'geojson'
+import moment from 'moment'
 import Logo from '../../../assets/logo.png'
-import { fetchRegionDatetimes, fetchAoiCenters, fetchCurrentAoiMetaData, fetchPredictions } from '../../../services/mapService'
+import { IDayOption } from '../../../interfaces/IDayOption'
+import { IPredProperties } from '../../../interfaces/api/IPredProperties'
+import { fetchAoiCenters, fetchCurrentAoiMetaData, fetchPredictions, fetchRegionDatetimes } from '../../../services/mapService'
 import { initMap } from '../../../services/mapboxService'
 import { addPredictionLayer, removeAllPredictions } from '../../../services/predictionLayerService'
 import { addAoiCentersLayer } from '../../../services/regionLayerService'
-import './MapboxMap.css'
-import { IRegionData, AoiId, CurrentAoiMetaData, Model } from './types'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { IDayOption } from '../../../interfaces/IDayOption'
-import { FeatureCollection, Point } from 'geojson'
-import { IPredProperties } from '../../../interfaces/api/IPredProperties'
 import { OEWHeader } from '../OEWHeader/OEWHeader'
-import moment from 'moment'
+import './MapboxMap.css'
+import { AoiId, CurrentAoiMetaData, IRegionData, Model } from './types'
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY!
 
@@ -171,7 +171,7 @@ export const MapboxMap: React.FC = () => {
         }
     }
     return (
-        <div>
+        <div className="h-screen">
             {aoiQueryIsLoading && (
                 <div
                     style={{

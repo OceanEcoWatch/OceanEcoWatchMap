@@ -92,7 +92,7 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
                 </button>
                 <div
                     className={`${
-                        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                        isSidebarOpen ? 'translate-x-0' : '-translate-x-[calc(100%+100px)]'
                     } transform top-0 left-0 w-64 text-white fixed h-full transition-transform duration-300 ease-in-out z-10`}
                 >
                     <div className="p-5 text-base font-bold">{regionProps?.name}</div>
