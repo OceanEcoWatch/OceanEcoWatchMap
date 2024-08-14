@@ -1,6 +1,7 @@
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import React, { useEffect, useRef, useState } from 'react'
+
 import Logo from '../../../assets/logo.png'
 import { fetchRegionDatetimes, fetchAoiCenters, fetchCurrentAoiMetaData, fetchPredictions } from '../../../services/mapService'
 import { initMap } from '../../../services/mapboxService'
@@ -120,9 +121,13 @@ export const MapboxMap: React.FC = () => {
     useEffect(() => {
         if (map) {
             removeAllPredictions(map)
+
             if (currentPredictions && currentAoiId) {
-                addPredictionLayer(map, currentAoiId, currentPredictions)
-                applyProbabilityFilter()
+                if (model === Model.MariNext) {
+                    addPredictionLayer(map, currentAoiId, currentPredictions, false)
+                } else {
+                    addPredictionLayer(map, currentAoiId, currentPredictions)
+                }
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

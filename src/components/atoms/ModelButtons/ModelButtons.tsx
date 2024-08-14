@@ -1,53 +1,92 @@
-import React, { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Model } from '../../organisms/MapBoxMap/types'
 import './ModelButtons.css'
-import { ExplanationBox } from '../ExplanationBox/ExplanationBox'
 
 export const ModelButtons: React.FC<{ model: Model; setModel: (model: Model) => void }> = ({ model, setModel }) => {
-    const [showExplanation, setShowExplanation] = useState(false)
-    const [hoveredButton, setHoveredButton] = useState<string | null>(null)
-
-    useEffect(() => {
-        let timer: NodeJS.Timeout
-        if (hoveredButton) {
-            timer = setTimeout(() => {
-                setShowExplanation(true)
-            }, 1000)
-        } else {
-            setShowExplanation(false)
-        }
-        return () => clearTimeout(timer)
-    }, [hoveredButton])
-
-    const handleMouseEnter = (buttonName: string) => {
-        setHoveredButton(buttonName)
-    }
-
-    const handleMouseLeave = () => {
-        setHoveredButton(null)
-    }
+    const buttonClassName = 'flex items-center justify-center text-white text-xs py-2 px-4 rounded shadow-lg'
+    const disabledButtonClassName = 'bg-gray-800'
+    const enabledButtonClassName = 'bg-gray-500'
+    const [showTooltip, setShowTooltip] = useState(false)
+    const [showTooltip2, setShowTooltip2] = useState(false)
 
     return (
         <div className="button-container">
             <button
-                className={`button ${model === Model.MariNext ? 'button-disabled' : 'button-enabled'}`}
+                className={` mr-2 h-full ${buttonClassName} ${model === Model.MariNext ? disabledButtonClassName : enabledButtonClassName}`}
+                disabled={model === Model.Marida}
                 onClick={() => setModel(Model.Marida)}
-                onMouseEnter={() => handleMouseEnter(Model.Marida)}
-                onMouseLeave={handleMouseLeave}
             >
                 {Model.Marida}
             </button>
+            <div className="tooltip-container">
+                <button
+                    className={`mr-2 w-8 h-8 text-lg text-white bg-gray-700 hover:bg-gray-900 focus:outline-none z-20 rounded-full`}
+                    onClick={() => setShowTooltip(!showTooltip)}
+                >
+                    i
+                </button>
+                {showTooltip && (
+                    <div className="tooltip-box">
+                        <p>
+                            This model was published by Marc Rußwurm. It's based on the{' '}
+                            <a target="_blank" rel="noopener noreferrer" href="https://marine-debris.github.io/">
+                                Marida
+                            </a>{' '}
+                            dataset. It outputs a probability value for each pixel, ranging from 0% to 100%. For more details chckout his paper{' '}
+                            <a
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                href="https://www.researchgate.net/publication/372136277_Large-scale_Detection_of_Marine_Debris_in_Coastal_Areas_with_Sentinel-2"
+                            >
+                                Large-scale Detection of Marine Debris in Coastal Areas with Sentinel-2
+                            </a>
+                        </p>
+                        <button
+                            onClick={() => setShowTooltip(false)}
+                            className="bg-gray-900 hover:bg-gray-900 text-white font-bold text-sm py-2 px-4 rounded shadow-lg"
+                        >
+                            close
+                        </button>
+                    </div>
+                )}
+            </div>
 
             <button
-                className={`button ${model === Model.Marida ? 'button-disabled' : 'button-enabled'}`}
+                className={`mr-2 h-full ${buttonClassName} ${model === Model.Marida ? disabledButtonClassName : enabledButtonClassName}`}
+                disabled={model === Model.MariNext}
                 onClick={() => setModel(Model.MariNext)}
-                onMouseEnter={() => handleMouseEnter(Model.MariNext)}
-                onMouseLeave={handleMouseLeave}
             >
                 {Model.MariNext}
             </button>
 
-            {hoveredButton && <ExplanationBox message={`You are looking at the Model: ${hoveredButton}`} show={showExplanation} />}
+            <div className="tooltip-container">
+                <button
+                    className={`w-8 h-8 text-lg text-white bg-gray-700 hover:bg-gray-900 focus:outline-none z-20 rounded-full`}
+                    onClick={() => setShowTooltip2(!showTooltip2)}
+                >
+                    i
+                </button>
+                {showTooltip2 && (
+                    <div className="tooltip-box tooltip-box-2">
+                        <p>
+                            This model was published by Katerina Kikaki. It's based on the{' '}
+                            <a target="_blank" rel="noopener noreferrer" href="https://github.com/gkakogeorgiou/mados">
+                                Mados
+                            </a>{' '}
+                            dataset. It classifies each pixel as either containing marine debris or not. For more details read the paper{' '}
+                            <a target="_blank" rel="noopener noreferrer" href="https://www.sciencedirect.com/science/article/pii/S0924271624000625">
+                                Detecting Marine pollutants and Sea Surface features with Deep learning in Sentinel-2 imagery
+                            </a>
+                        </p>
+                        <button
+                            onClick={() => setShowTooltip2(!showTooltip2)}
+                            className="bg-gray-900 hover:bg-gray-900 text-white font-bold text-sm py-2 px-4 rounded shadow-lg"
+                        >
+                            close
+                        </button>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }

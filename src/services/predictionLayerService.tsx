@@ -22,16 +22,41 @@ export function addPolygonLayer(map: mapboxgl.Map, aoi: Polygon) {
     })
 }
 
-export function addPredictionLayer(map: mapboxgl.Map, aoiId: number, currentPredictions: FeatureCollection<Point, IPredProperties>) {
-    map.addSource(`prediction-${aoiId}`, {
+// Create a single, reusable popup instance
+const popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false,
+})
+
+export function addPredictionLayer(
+    map: mapboxgl.Map,
+    aoiId: number,
+    currentPredictions: FeatureCollection<Point, IPredProperties>,
+    showPixelValue: boolean = true,
+) {
+    const layerId = `prediction-${aoiId}`
+    const heatmapLayerId = `${layerId}-heatmap`
+    const pointLayerId = `${layerId}-point`
+
+    // Remove existing layers and source if they exist
+    if (map.getLayer(heatmapLayerId)) map.removeLayer(heatmapLayerId)
+    if (map.getLayer(pointLayerId)) map.removeLayer(pointLayerId)
+    if (map.getSource(layerId)) map.removeSource(layerId)
+
+    // Remove existing event listeners
+    map.off('mouseenter', pointLayerId as any)
+    map.off('mouseleave', pointLayerId as any)
+
+    // Add new source and layers
+    map.addSource(layerId, {
         type: 'geojson',
         data: currentPredictions,
     })
 
     map.addLayer({
-        id: `prediction-${aoiId}-heatmap`,
+        id: heatmapLayerId,
         type: 'heatmap',
-        source: `prediction-${aoiId}`,
+        source: layerId,
         maxzoom: 15,
         paint: {
             'heatmap-weight': ['interpolate', ['linear'], ['get', 'pixelValue'], 0, 0, 100, 1],
@@ -68,9 +93,9 @@ export function addPredictionLayer(map: mapboxgl.Map, aoiId: number, currentPred
     })
 
     map.addLayer({
-        id: `prediction-${aoiId}-point`,
+        id: pointLayerId,
         type: 'circle',
-        source: `prediction-${aoiId}`,
+        source: layerId,
         minzoom: 14,
         paint: {
             'circle-radius': ['interpolate', ['linear'], ['zoom'], 14, 5, 22, 10],
@@ -102,18 +127,14 @@ export function addPredictionLayer(map: mapboxgl.Map, aoiId: number, currentPred
         },
     })
 
-    var popup = new mapboxgl.Popup({
-        closeButton: false,
-        closeOnClick: false,
-    })
-
-    map.on('mouseenter', `prediction-${aoiId}-point`, function (e) {
+    map.on('mouseenter', pointLayerId, (e) => {
         map.getCanvas().style.cursor = 'pointer'
-
         if (e.features && e.features[0].geometry.type === 'Point') {
-            var coordinates = e.features![0].geometry.coordinates.slice()
-            var description = `${moment.unix(e.features[0].properties!.timestamp).format('DD.MM.YYYY HH:mm')}<br>
-                               ${e.features![0].properties?.pixelValue.toFixed(0)} %`
+            const coordinates = e.features[0].geometry.coordinates.slice() as [number, number]
+            let description = `${moment.unix(e.features[0].properties!.timestamp).format('DD.MM.YYYY HH:mm')}`
+            if (showPixelValue)
+                description += `<br>
+                           ${e.features[0].properties?.pixelValue.toFixed(0)} %`
 
             // Ensure that if the map is zoomed out such that multiple
             // copies of the feature are visible, the popup appears
@@ -124,11 +145,11 @@ export function addPredictionLayer(map: mapboxgl.Map, aoiId: number, currentPred
 
             // Populate the popup and set its coordinates
             // based on the feature found.
-            popup.setLngLat([coordinates[0], coordinates[1]]).setHTML(description).addTo(map)
+            popup.setLngLat(coordinates).setHTML(description).addTo(map)
         }
     })
 
-    map.on('mouseleave', `prediction-${aoiId}-point`, function () {
+    map.on('mouseleave', pointLayerId, () => {
         map.getCanvas().style.cursor = ''
         popup.remove()
     })
@@ -158,7 +179,6 @@ export function removeAllPredictions(map: mapboxgl.Map) {
         const layers = mapStyle.layers
         layers.forEach((layer) => {
             if (layer.id.startsWith('prediction')) {
-           
                 map.removeLayer(layer.id)
             }
         })

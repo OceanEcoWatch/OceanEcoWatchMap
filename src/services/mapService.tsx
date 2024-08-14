@@ -1,8 +1,8 @@
 import { FeatureCollection, Point, Polygon } from 'geojson'
+import { AoiId, CurrentAoiMetaData, Model } from '../components/organisms/MapBoxMap/types'
 import { IAOICenterProperties } from '../interfaces/api/IAOICenterProperties'
 import { IPredProperties } from '../interfaces/api/IPredProperties'
 import { IAPIRegionDatetimes } from '../interfaces/api/IRegionDatetime'
-import { AoiId, CurrentAoiMetaData, Model } from '../components/organisms/MapBoxMap/types'
 import { ISCLProperties } from '../interfaces/api/ISCLProperties'
 
 var baseUrl = process.env.REACT_APP_API_URL

@@ -16,6 +16,6 @@ export type CurrentAoiMetaData = {
 
 // This enum maps the model names to the display names in the UI
 export enum Model {
-    'Marida' = 'Marine Debris Detector',
-    'MariNext' = 'MariNext',
+    'Marida' = 'Marine DebrisDetector',
+    'MariNext' = 'MariNeXt',
 }
