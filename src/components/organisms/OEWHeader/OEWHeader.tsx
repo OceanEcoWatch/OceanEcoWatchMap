@@ -69,7 +69,7 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
         <div>
             {windowWidth < 570 && (
                 <div className="header-top-row flex items-center justify-center">
-                    <a href="https://oceanecowatch.org" className="flex items-center">
+                    <a target="_blank" rel="noopener noreferrer" href="https://oceanecowatch.org" className="flex items-center">
                         <img src={logo} alt="Logo" className="h-12 inline-block mr-4" />
                         <span className="text-xl font-semibold">Ocean Eco Watch</span>
                     </a>
@@ -99,7 +99,7 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
                     <div id="sidebar" className="flex flex-col items-center justify-center h-full">
                         {regionProps === null && <p>Click on one of the red dots to select a region first.</p>}
                         {regionProps && (
-                            <div className="container flex flex-col justify-between h-full">
+                            <div className="container flex flex-col justify-start h-full">
                                 <div>
                                     <BackButton map={map} handleDeselectAoi={handleDeselectAoi}></BackButton>
                                     <AreaDetails
@@ -146,7 +146,7 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
                 </div>
                 {windowWidth > 570 && (
                     <div className="text-center py-2 pl-[150px] flex items-center justify-center">
-                        <a href="https://oceanecowatch.org" className="flex items-center">
+                        <a target="_blank" rel="noopener noreferrer" href="https://oceanecowatch.org" className="flex items-center">
                             <img src={logo} alt="Logo" className="h-12 inline-block mr-4" />
                             <span className="text-xl font-semibold">Ocean Eco Watch</span>
                         </a>
@@ -166,17 +166,26 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
                     {infoIsOpen && (
                         <div id="info-div" className="absolute top-24 right-2 p-5">
                             <p className="text-start">
-                                <a href="https://www.oceanecowatch.org/">Ocean Eco Watch</a> is an interactive map highlighting potential locations of
-                                floating marine debris in various coastal areas. Utilizing data from the ESA's Sentinel-2 satellite, our map
-                                identifies and analyzes debris hotspots.
+                                <a target="_blank" rel="noopener noreferrer" href="https://www.oceanecowatch.org/">
+                                    Ocean Eco Watch
+                                </a>{' '}
+                                is an interactive map highlighting potential locations of floating marine debris in various coastal areas. Utilizing
+                                data from the ESA's Sentinel-2 satellite, our map identifies and analyzes debris hotspots.
                                 <br></br>
                                 To explore, click on any red dot and zoom in to see a detailed marine debris analysis of the area. Each point
                                 represents a 10m x 10m area with an estimated probability of marine debris presence.
                                 <br></br>
                                 We welcome your feedback and suggestions! If you enjoy this map or have ideas for new features or applications, please
-                                contact us at: <a href="mailto:contact@oceanecowatch.org">contact@oceanecowatch.org</a>.<br></br>
+                                contact us at:{' '}
+                                <a target="_blank" rel="noopener noreferrer" href="mailto:contact@oceanecowatch.org">
+                                    contact@oceanecowatch.org
+                                </a>
+                                .<br></br>
                                 As an open-source project, you can find and contribute to our source code on{' '}
-                                <a href="https://github.com/OceanEcoWatch">GitHub</a>.
+                                <a target="_blank" rel="noopener noreferrer" href="https://github.com/OceanEcoWatch">
+                                    GitHub
+                                </a>
+                                .
                             </p>
                             <div className="flex justify-end">
                                 <button

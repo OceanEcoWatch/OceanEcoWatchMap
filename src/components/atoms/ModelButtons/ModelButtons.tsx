@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Model } from '../../organisms/MapBoxMap/types'
-import './ModelButton.css'
+import './ModelButtons.css'
 
 export const ModelButtons: React.FC<{ model: Model; setModel: (model: Model) => void }> = ({ model, setModel }) => {
     const buttonClassName = 'flex items-center justify-center text-white text-xs py-2 px-4 rounded shadow-lg'
@@ -12,7 +12,7 @@ export const ModelButtons: React.FC<{ model: Model; setModel: (model: Model) => 
     return (
         <div className="button-container">
             <button
-                className={` mr-2 ${buttonClassName} ${model === Model.MariNext ? disabledButtonClassName : enabledButtonClassName}`}
+                className={` mr-2 h-full ${buttonClassName} ${model === Model.MariNext ? disabledButtonClassName : enabledButtonClassName}`}
                 disabled={model === Model.Marida}
                 onClick={() => setModel(Model.Marida)}
             >
@@ -28,9 +28,16 @@ export const ModelButtons: React.FC<{ model: Model; setModel: (model: Model) => 
                 {showTooltip && (
                     <div className="tooltip-box">
                         <p>
-                            This model was published by Marc Rußwurm. It's based on the <a href="https://marine-debris.github.io/">Marida</a> dataset.
-                            It outputs a probability value for each pixel, ranging from 0% to 100%. For more details chckout his paper{' '}
-                            <a href="https://www.researchgate.net/publication/372136277_Large-scale_Detection_of_Marine_Debris_in_Coastal_Areas_with_Sentinel-2">
+                            This model was published by Marc Rußwurm. It's based on the{' '}
+                            <a target="_blank" rel="noopener noreferrer" href="https://marine-debris.github.io/">
+                                Marida
+                            </a>{' '}
+                            dataset. It outputs a probability value for each pixel, ranging from 0% to 100%. For more details chckout his paper{' '}
+                            <a
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                href="https://www.researchgate.net/publication/372136277_Large-scale_Detection_of_Marine_Debris_in_Coastal_Areas_with_Sentinel-2"
+                            >
                                 Large-scale Detection of Marine Debris in Coastal Areas with Sentinel-2
                             </a>
                         </p>
@@ -45,7 +52,7 @@ export const ModelButtons: React.FC<{ model: Model; setModel: (model: Model) => 
             </div>
 
             <button
-                className={`mr-2 ${buttonClassName} ${model === Model.Marida ? disabledButtonClassName : enabledButtonClassName}`}
+                className={`mr-2 h-full ${buttonClassName} ${model === Model.Marida ? disabledButtonClassName : enabledButtonClassName}`}
                 disabled={model === Model.MariNext}
                 onClick={() => setModel(Model.MariNext)}
             >
@@ -62,9 +69,12 @@ export const ModelButtons: React.FC<{ model: Model; setModel: (model: Model) => 
                 {showTooltip2 && (
                     <div className="tooltip-box tooltip-box-2">
                         <p>
-                            This model was published by Katerina Kikaki. It's based on the <a>Mados</a> dataset. It classifies each pixel as either
-                            containing marine debris or not. For more details read the paper{' '}
-                            <a href="https://www.sciencedirect.com/science/article/pii/S0924271624000625">
+                            This model was published by Katerina Kikaki. It's based on the{' '}
+                            <a target="_blank" rel="noopener noreferrer" href="https://github.com/gkakogeorgiou/mados">
+                                Mados
+                            </a>{' '}
+                            dataset. It classifies each pixel as either containing marine debris or not. For more details read the paper{' '}
+                            <a target="_blank" rel="noopener noreferrer" href="https://www.sciencedirect.com/science/article/pii/S0924271624000625">
                                 Detecting Marine pollutants and Sea Surface features with Deep learning in Sentinel-2 imagery
                             </a>
                         </p>

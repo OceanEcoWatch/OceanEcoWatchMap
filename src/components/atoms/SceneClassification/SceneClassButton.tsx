@@ -42,6 +42,7 @@ export const SclButton: React.FC<{ className: string; map: mapboxgl.Map; geoData
                     },
                 })
             } else {
+                console.log('classname', className)
                 if (map.getLayer(`scl-layer-${className}`)) {
                     //remove if layer exists
                     map.removeLayer(`scl-layer-${className}`)
