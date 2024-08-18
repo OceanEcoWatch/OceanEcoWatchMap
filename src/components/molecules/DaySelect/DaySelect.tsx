@@ -1,34 +1,23 @@
-import React, { useEffect } from 'react'
-import Select, { MultiValue } from 'react-select'
+import React from 'react'
+import Select, { ActionMeta } from 'react-select'
 import { IDayOption } from '../../../interfaces/IDayOption'
 
 interface DaySelectProps {
-    possibleDays: IDayOption[]
-    selectedDays: readonly IDayOption[]
-    setSelectedDays: React.Dispatch<React.SetStateAction<readonly IDayOption[]>>
+    days: IDayOption[]
+    handleSelectedDaysChange: (event: ActionMeta<IDayOption>) => void
+    isBusy: boolean
 }
 
-const DaySelect: React.FC<DaySelectProps> = ({ possibleDays, selectedDays, setSelectedDays }) => {
-    const [isDefaultSet, setIsDefaultSet] = React.useState(false)
-    const handleChange = (selectedOptions: MultiValue<IDayOption>) => {
-        setSelectedDays(selectedOptions)
-    }
-
-    useEffect(() => {
-        if (possibleDays.length > 0 && !isDefaultSet) {
-            setIsDefaultSet(true)
-            setSelectedDays([possibleDays[0]])
-        }
-    }, [possibleDays, isDefaultSet, setSelectedDays])
-
+const DaySelect: React.FC<DaySelectProps> = ({ days, handleSelectedDaysChange, isBusy }) => {
     return (
         <Select
-            value={selectedDays}
+            isDisabled={isBusy}
+            defaultValue={days[0]}
             isMulti
             name="days"
-            options={possibleDays}
+            options={days}
             className="basic-multi-select"
-            onChange={handleChange}
+            onChange={(_, action) => handleSelectedDaysChange(action)}
             classNamePrefix="select"
             theme={(theme) => ({
                 ...theme,

@@ -1,79 +1,56 @@
+import { useQuery } from '@tanstack/react-query'
+import { FeatureCollection, Point } from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import React, { useEffect, useRef, useState } from 'react'
-
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { FeatureCollection, Point } from 'geojson'
-import moment from 'moment'
+import { ActionMeta } from 'react-select'
 import Logo from '../../../assets/logo.png'
+import { getBeginningOfUTCDay } from '../../../common/utils'
 import { IDayOption } from '../../../interfaces/IDayOption'
 import { IPredProperties } from '../../../interfaces/api/IPredProperties'
-import { fetchAoiCenters, fetchCurrentAoiMetaData, fetchPredictions, fetchRegionDatetimes } from '../../../services/mapService'
+import { fetchAoiCenters, fetchCurrentAoiMetaData, fetchRegionDatetimes } from '../../../services/mapService'
 import { initMap } from '../../../services/mapboxService'
 import { addPredictionLayer, removeAllPredictions } from '../../../services/predictionLayerService'
 import { addAoiCentersLayer } from '../../../services/regionLayerService'
-import { OEWHeader } from '../OEWHeader/OEWHeader'
+import TopBanner from '../OEWHeader/OEWHeader'
+import { usePredictionQuery } from '../usePredictionQuery'
 import './MapboxMap.css'
 import { AoiId, CurrentAoiMetaData, IRegionData, Model } from './types'
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY!
 
-export const MapboxMap: React.FC = () => {
-    const queryClient = useQueryClient()
+const MapboxMap: React.FC = () => {
+    const [predictionQueryParams, setPredictionQueryParams] = useState<{ timestamp: number; aoiId: number; model: Model } | undefined>(undefined)
+    const [shouldAddToPredictions, setShouldAddToPredictions] = useState<boolean>(false)
     const [model, setModel] = useState<Model>(Model.Marida)
-    const [selectedDays, setSelectedDays] = useState<readonly IDayOption[]>([])
+    const {
+        isPending: predictionQueryIsPending,
+        isFetching: predictionQueryIsFetching,
+        isSuccess: predictionQueryIsSuccess,
+        data: predictionQueryData,
+        isLoading: predictionQueryIsLoading,
+    } = usePredictionQuery(predictionQueryParams?.timestamp, predictionQueryParams?.aoiId!, predictionQueryParams?.model)
+
     const mapContainerRef = useRef<HTMLDivElement>(null)
     const [map, setMap] = useState<mapboxgl.Map | null>(null)
-    const [fetchingPredictions, setFetchingPredictions] = useState<boolean>(false)
+
     const [currentAoiId, setCurrentAoiId] = useState<AoiId>(null)
     const [currentAoiData, setCurrentAoiData] = useState<null | IRegionData>(null)
     const [mapLoaded, setMapLoaded] = useState(false)
-    const [currentAoiMetaData, setCurrentAoiMetaData] = useState<CurrentAoiMetaData>({ timestampWithSignificantPlastic: 'no data' })
+    const [currentAoiMetaData, setCurrentAoiMetaData] = useState<null | CurrentAoiMetaData>(null)
     const [currentPredictions, setCurrentPredictions] = useState<null | FeatureCollection<Point, IPredProperties>>(null)
-    const [possibleDays, setPossibleDays] = useState<IDayOption[]>([])
-    const [probabilityThreshold, setProbabilityThreshold] = useState(30)
-    //set the possible days for the day select component depending on the aoi info
-    useEffect(() => {
-        if (currentAoiData && currentAoiData.timestamps) {
-            const days: IDayOption[] = []
-            currentAoiData.timestamps.forEach((timestamp) => {
-                const readableTimestamp = moment.unix(timestamp).format('DD.MM.YYYY HH:mm')
-                days.push({ value: timestamp, label: readableTimestamp })
-            })
-            setPossibleDays(days)
-        }
-    }, [currentAoiData])
 
-    useEffect(() => {
-        const updatePredictions = async () => {
-            setFetchingPredictions(true)
-            const results = await Promise.all(
-                selectedDays.map((dayData) =>
-                    queryClient.fetchQuery({
-                        queryKey: ['prediction', dayData.value, currentAoiId, model],
-                        queryFn: async () => await fetchPredictions(dayData.value, currentAoiId!, model!),
-                        staleTime: Infinity, // Data never becomes stale
-                    }),
-                ),
-            )
-            let newPredictions: FeatureCollection<Point, IPredProperties> = { type: 'FeatureCollection', features: [] }
-            results.forEach((result) => {
-                newPredictions = { type: 'FeatureCollection', features: [...newPredictions.features, ...result.features] }
-            })
-            setCurrentPredictions(newPredictions)
-            setFetchingPredictions(false)
+    const getUniqueSelectedTimestamps = (): number[] => {
+        const uniqueCurrentTimestamps: number[] = []
+        if (currentPredictions && currentPredictions.features) {
+            for (const feature of currentPredictions.features) {
+                if (!uniqueCurrentTimestamps.includes(feature.properties.timestamp)) {
+                    uniqueCurrentTimestamps.push(feature.properties.timestamp)
+                }
+            }
         }
-        if (selectedDays.length > 0 && currentAoiId && model) {
-            updatePredictions()
-        } else {
-            setCurrentPredictions(null)
-        }
-        return () => {
-            setCurrentPredictions(null)
-            setFetchingPredictions(false)
-        }
-    }, [selectedDays, currentAoiId, model, queryClient])
-
+        return uniqueCurrentTimestamps
+    }
     const {
         isLoading: timestampQueryisLoading,
         isSuccess: timestampQueryIsSuccess,
@@ -98,7 +75,11 @@ export const MapboxMap: React.FC = () => {
         refetchOnWindowFocus: false,
     })
 
-    const { isSuccess: currentAoiMetaDataQueryIsSuccess, data: currentAoiMetaDataQueryData } = useQuery({
+    const {
+        isLoading: currentAoiMetaDataQueryisLoading,
+        isSuccess: currentAoiMetaDataQueryIsSuccess,
+        data: currentAoiMetaDataQueryData,
+    } = useQuery({
         queryFn: async () => await fetchCurrentAoiMetaData(currentAoiId!),
         enabled: Boolean(currentAoiId),
         queryKey: ['currentAoiMetaData', currentAoiId],
@@ -109,13 +90,55 @@ export const MapboxMap: React.FC = () => {
         setCurrentAoiId(null)
         setCurrentAoiData(null)
         setCurrentPredictions(null)
-        setSelectedDays([])
+    }
+
+    async function handleDaySelect(event: ActionMeta<IDayOption>) {
+        if (event.action === 'select-option') {
+            //set the timestamp to fetch the prediction
+            setPredictionQueryParams({ timestamp: event.option!.value!, aoiId: currentAoiId!, model: model })
+            setShouldAddToPredictions(true)
+        } else if (event.action === 'remove-value') {
+            const timestampToRemove = event.removedValue.value
+            //filter out the removed value from the feature collection currentPredictions
+            if (!currentPredictions || !currentPredictions?.features) {
+                setCurrentPredictions(null)
+                return
+            }
+
+            const remainingFeatures = currentPredictions!.features.filter(
+                (feature) => getBeginningOfUTCDay(feature.properties.timestamp) !== timestampToRemove,
+            )
+            if (remainingFeatures.length! > 0) {
+                setCurrentPredictions({ type: 'FeatureCollection', features: remainingFeatures })
+                return
+            } else {
+                setCurrentPredictions(null)
+            }
+        } else if (event.action === 'clear') {
+            setCurrentPredictions(null)
+        }
+        return
     }
     useEffect(() => {
-        applyProbabilityFilter()
+        setPredictionQueryParams({ ...predictionQueryParams!, model: model })
+        setShouldAddToPredictions(true)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [model])
+
+    //use Effect to add new predictions that were fetched by react query
+    useEffect(() => {
+        if (!predictionQueryData || !predictionQueryIsSuccess || !shouldAddToPredictions) return
+
+        if (currentPredictions && currentPredictions.features.length > 0) {
+            setCurrentPredictions({ type: 'FeatureCollection', features: [...currentPredictions.features, ...predictionQueryData.features] })
+            setShouldAddToPredictions(false)
+        } else {
+            setCurrentPredictions(predictionQueryData)
+            setShouldAddToPredictions(false)
+        }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [probabilityThreshold])
+    }, [predictionQueryIsSuccess, predictionQueryData, shouldAddToPredictions])
 
     //use Effect to update the prediction layer on the map
     useEffect(() => {
@@ -143,6 +166,9 @@ export const MapboxMap: React.FC = () => {
     useEffect(() => {
         if (timestampQueryIsSuccess && currentAoiId && currentAoiData) {
             setCurrentAoiData({ ...currentAoiData, timestamps: timestampQueryData })
+            setShouldAddToPredictions(true)
+            setPredictionQueryParams({ timestamp: timestampQueryData[0], aoiId: currentAoiId, model: model })
+            //setIsSidebarOpen(true)
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -159,19 +185,8 @@ export const MapboxMap: React.FC = () => {
             setCurrentAoiMetaData(currentAoiMetaDataQueryData)
         }
     }, [currentAoiMetaDataQueryIsSuccess, currentAoiMetaDataQueryData])
-
-    const applyProbabilityFilter = () => {
-        if (map && currentAoiId) {
-            if (map.getLayer(`prediction-${currentAoiId}-heatmap`)) {
-                map.setFilter(`prediction-${currentAoiId}-heatmap`, ['>', ['get', 'pixelValue'], probabilityThreshold])
-            }
-            if (map.getLayer(`prediction-${currentAoiId}-point`)) {
-                map.setFilter(`prediction-${currentAoiId}-point`, ['>', ['get', 'pixelValue'], probabilityThreshold])
-            }
-        }
-    }
     return (
-        <div className="h-screen">
+        <div>
             {aoiQueryIsLoading && (
                 <div
                     style={{
@@ -210,7 +225,7 @@ export const MapboxMap: React.FC = () => {
                 </div>
             )}
 
-            {fetchingPredictions && (
+            {predictionQueryIsLoading && (
                 <div
                     style={{
                         zIndex: 1000,
@@ -229,22 +244,22 @@ export const MapboxMap: React.FC = () => {
                 </div>
             )}
 
-            <OEWHeader
+            <TopBanner
                 logo={Logo}
                 isOpen={!!currentAoiId}
                 regionProps={currentAoiData}
                 currentAoiMetaData={currentAoiMetaData}
-                selectedDays={selectedDays}
-                setSelectedDays={setSelectedDays}
-                possibleDays={possibleDays}
+                handleSelectedDaysChange={handleDaySelect}
                 handleDeselectAoi={handleDeselectAoi}
                 map={map!}
+                isBusy={predictionQueryIsPending || predictionQueryIsFetching}
+                uniqueSelectedTimestamps={getUniqueSelectedTimestamps()}
                 model={model}
                 setModel={setModel}
-                setProbabilityThreshold={setProbabilityThreshold}
-                probabilityThreshold={probabilityThreshold}
-            ></OEWHeader>
+            ></TopBanner>
             <div ref={mapContainerRef} className="map-container h-screen"></div>
         </div>
     )
 }
+
+export default MapboxMap

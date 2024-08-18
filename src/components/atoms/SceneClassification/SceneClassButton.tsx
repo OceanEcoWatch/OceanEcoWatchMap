@@ -42,7 +42,6 @@ export const SclButton: React.FC<{ className: string; map: mapboxgl.Map; geoData
                     },
                 })
             } else {
-                console.log('classname', className)
                 if (map.getLayer(`scl-layer-${className}`)) {
                     //remove if layer exists
                     map.removeLayer(`scl-layer-${className}`)
@@ -55,9 +54,7 @@ export const SclButton: React.FC<{ className: string; map: mapboxgl.Map; geoData
     return (
         <div className="flex items-center">
             <input type="checkbox" onChange={onClick} id={`checkbox-${className}`} className="mr-2 checkbox" />
-            <label htmlFor={`checkbox-${className}`}>
-                <p>{SCL_NAME[className as keyof typeof SCL_NAME]}</p>
-            </label>
+            <label htmlFor={`checkbox-${className}`}>{SCL_NAME[className as keyof typeof SCL_NAME]}</label>
         </div>
     )
 }

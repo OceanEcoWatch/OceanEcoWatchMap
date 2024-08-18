@@ -11,11 +11,10 @@ export interface IRegionData {
 }
 
 export type CurrentAoiMetaData = {
-    timestampWithSignificantPlastic: number | string
+    timestampWithSignificantPlastic: number
 }
 
-// This enum maps the model names to the display names in the UI
 export enum Model {
-    'Marida' = 'Marine DebrisDetector',
-    'MariNext' = 'MariNeXt',
+    'Marida' = 'Marida',
+    'MariNext' = 'MariNext',
 }

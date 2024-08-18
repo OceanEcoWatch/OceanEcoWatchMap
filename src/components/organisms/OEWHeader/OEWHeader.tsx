@@ -1,5 +1,7 @@
 import mapboxgl from 'mapbox-gl'
+import moment from 'moment'
 import React, { useEffect, useState } from 'react'
+import { ActionMeta } from 'react-select'
 import { IDayOption } from '../../../interfaces/IDayOption'
 import { AreaDetails } from '../../atoms/AreaDetails/AreaDetails'
 import { BackButton } from '../../atoms/BackButton/BackButton'
@@ -16,32 +18,28 @@ interface OEWHeaderProps {
     logo: string
     isOpen: boolean
     regionProps: null | IRegionData
-    possibleDays: IDayOption[]
-    selectedDays: readonly IDayOption[]
-    setSelectedDays: React.Dispatch<React.SetStateAction<readonly IDayOption[]>>
+    handleSelectedDaysChange: (event: ActionMeta<IDayOption>) => void
     handleDeselectAoi: () => void
-    currentAoiMetaData: CurrentAoiMetaData
+    currentAoiMetaData: CurrentAoiMetaData | null
     map: mapboxgl.Map
+    isBusy: boolean
+    uniqueSelectedTimestamps: number[]
     model: Model
     setModel: (model: Model) => void
-    setProbabilityThreshold: React.Dispatch<React.SetStateAction<number>>
-    probabilityThreshold: number
 }
 
-export const OEWHeader: React.FC<OEWHeaderProps> = ({
+const OEWHeader: React.FC<OEWHeaderProps> = ({
     logo,
     isOpen,
     regionProps,
-    possibleDays,
-    selectedDays,
-    setSelectedDays,
+    handleSelectedDaysChange,
     map,
     handleDeselectAoi,
+    isBusy,
     currentAoiMetaData,
+    uniqueSelectedTimestamps,
     model,
     setModel,
-    probabilityThreshold,
-    setProbabilityThreshold,
 }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(isOpen)
     const [infoIsOpen, setInfo] = useState(false)
@@ -65,11 +63,20 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
         setIsSidebarOpen(isOpen)
     }, [isOpen])
 
+    const days: IDayOption[] = []
+
+    if (regionProps) {
+        regionProps.timestamps.forEach((timestamp) => {
+            const readableTimestamp = moment.unix(timestamp).format('DD.MM.YYYY HH:mm')
+            days.push({ value: timestamp, label: readableTimestamp })
+        })
+    }
+
     return (
         <div>
             {windowWidth < 570 && (
                 <div className="header-top-row flex items-center justify-center">
-                    <a target="_blank" rel="noopener noreferrer" href="https://oceanecowatch.org" className="flex items-center">
+                    <a href="https://oceanecowatch.org" className="flex items-center">
                         <img src={logo} alt="Logo" className="h-12 inline-block mr-4" />
                         <span className="text-xl font-semibold">Ocean Eco Watch</span>
                     </a>
@@ -92,14 +99,14 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
                 </button>
                 <div
                     className={`${
-                        isSidebarOpen ? 'translate-x-0' : '-translate-x-[calc(100%+100px)]'
+                        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
                     } transform top-0 left-0 w-64 text-white fixed h-full transition-transform duration-300 ease-in-out z-10`}
                 >
                     <div className="p-5 text-base font-bold">{regionProps?.name}</div>
                     <div id="sidebar" className="flex flex-col items-center justify-center h-full">
                         {regionProps === null && <p>Click on one of the red dots to select a region first.</p>}
                         {regionProps && (
-                            <div className="container flex flex-col justify-start h-full">
+                            <div className="container flex flex-col justify-between h-full">
                                 <div>
                                     <BackButton map={map} handleDeselectAoi={handleDeselectAoi}></BackButton>
                                     <AreaDetails
@@ -113,30 +120,24 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
                                     <ModelButtons model={model} setModel={setModel} />
                                     <div className="my-12">
                                         <div className="font-bold text-sm my-5 text-left">Select Days</div>
-
-                                        <DaySelect selectedDays={selectedDays} possibleDays={possibleDays} setSelectedDays={setSelectedDays} />
+                                        {days.length > 0 && (
+                                            <DaySelect isBusy={isBusy} days={days} handleSelectedDaysChange={handleSelectedDaysChange} />
+                                        )}
                                     </div>
                                 </div>
-
-                                <div>
-                                    <div className="font-bold text-sm my-5 text-left">Scene Classification</div>
-                                    <SCLInformationContainer
-                                        selectedTimestamps={
-                                            selectedDays.map((selectedDay) => {
-                                                return selectedDay.value
-                                            }) || []
-                                        }
-                                        currentAoiId={regionProps.id}
-                                        map={map}
-                                    />
-                                </div>
-
+                                {uniqueSelectedTimestamps && regionProps?.id && (
+                                    <div>
+                                        <div className="font-bold text-sm my-5 text-left">Scene Classification</div>
+                                        <SCLInformationContainer
+                                            selectedTimestamps={uniqueSelectedTimestamps || []}
+                                            currentAoiId={regionProps.id}
+                                            map={map}
+                                        />
+                                    </div>
+                                )}
                                 {model === Model.Marida && (
                                     <div>
-                                        <ProbabilityFilter
-                                            setProbabilityThreshold={setProbabilityThreshold}
-                                            probabilityThreshold={probabilityThreshold}
-                                        ></ProbabilityFilter>
+                                        <ProbabilityFilter map={map} aoiId={regionProps.id}></ProbabilityFilter>
                                         <ProbabilityLegend></ProbabilityLegend>
                                     </div>
                                 )}
@@ -146,7 +147,7 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
                 </div>
                 {windowWidth > 570 && (
                     <div className="text-center py-2 pl-[150px] flex items-center justify-center">
-                        <a target="_blank" rel="noopener noreferrer" href="https://oceanecowatch.org" className="flex items-center">
+                        <a href="https://oceanecowatch.org" className="flex items-center">
                             <img src={logo} alt="Logo" className="h-12 inline-block mr-4" />
                             <span className="text-xl font-semibold">Ocean Eco Watch</span>
                         </a>
@@ -166,26 +167,17 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
                     {infoIsOpen && (
                         <div id="info-div" className="absolute top-24 right-2 p-5">
                             <p className="text-start">
-                                <a target="_blank" rel="noopener noreferrer" href="https://www.oceanecowatch.org/">
-                                    Ocean Eco Watch
-                                </a>{' '}
-                                is an interactive map highlighting potential locations of floating marine debris in various coastal areas. Utilizing
-                                data from the ESA's Sentinel-2 satellite, our map identifies and analyzes debris hotspots.
+                                <a href="https://www.oceanecowatch.org/">Ocean Eco Watch</a> is an interactive map highlighting potential locations of
+                                floating marine debris in various coastal areas. Utilizing data from the ESA's Sentinel-2 satellite, our map
+                                identifies and analyzes debris hotspots.
                                 <br></br>
                                 To explore, click on any red dot and zoom in to see a detailed marine debris analysis of the area. Each point
                                 represents a 10m x 10m area with an estimated probability of marine debris presence.
                                 <br></br>
                                 We welcome your feedback and suggestions! If you enjoy this map or have ideas for new features or applications, please
-                                contact us at:{' '}
-                                <a target="_blank" rel="noopener noreferrer" href="mailto:contact@oceanecowatch.org">
-                                    contact@oceanecowatch.org
-                                </a>
-                                .<br></br>
+                                contact us at: <a href="mailto:contact@oceanecowatch.org">contact@oceanecowatch.org</a>.<br></br>
                                 As an open-source project, you can find and contribute to our source code on{' '}
-                                <a target="_blank" rel="noopener noreferrer" href="https://github.com/OceanEcoWatch">
-                                    GitHub
-                                </a>
-                                .
+                                <a href="https://github.com/OceanEcoWatch">GitHub</a>.
                             </p>
                             <div className="flex justify-end">
                                 <button
@@ -202,3 +194,5 @@ export const OEWHeader: React.FC<OEWHeaderProps> = ({
         </div>
     )
 }
+
+export default OEWHeader

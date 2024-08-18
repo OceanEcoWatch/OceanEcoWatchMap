@@ -84,7 +84,7 @@ export async function fetchPredictions(
 ): Promise<FeatureCollection<Point, IPredProperties>> {
     try {
         const response = await fetch(
-            `${baseUrl}predictions-by-day-and-aoi?day=${datetime}&aoi_id=${aoiId}${model === Model.Marida ? '&accuracy_limit=' + accuracyLimit : ''}&model_id=${getModelIdByName(model)}`,
+            `${baseUrl}predictions-by-day-and-aoi?day=${datetime}&aoi_id=${aoiId}&accuracy_limit=${accuracyLimit}&model_id=${getModelIdByName(model)}`,
         )
         if (!response.ok) {
             throw new Error('Network response was not ok ' + response.status)
@@ -99,7 +99,7 @@ export async function fetchPredictions(
     }
 }
 const getModelIdByName = (model: Model): string => {
-    const modelId = model === Model.Marida ? 'oceanecowatch/plasticdetectionmodel:1.0.1' : 'oceanecowatch/marinext:2'
+    const modelId = Model.MariNext ? 'oceanecowatch/plasticdetectionmodel:1.0.1' : 'oceanecowatch/marinext:2'
     return modelId
 }
 
